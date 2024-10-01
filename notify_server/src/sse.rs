@@ -1,14 +1,14 @@
-use std::convert::Infallible;
-use std::time::Duration;
-use axum::response::Sse;
 use axum::response::sse::Event;
+use axum::response::Sse;
 use axum_extra::{headers, TypedHeader};
 use futures::{stream, Stream};
+use std::convert::Infallible;
+use std::time::Duration;
 use tokio_stream::StreamExt;
 
 pub(crate) async fn sse_handler(
     TypedHeader(user_agent): TypedHeader<headers::UserAgent>,
-) -> Sse<impl Stream<Item=Result<Event, Infallible>>> {
+) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     println!("`{}` connected", user_agent.as_str());
 
     // A `Stream` that repeats an event every second
