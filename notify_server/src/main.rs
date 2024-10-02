@@ -14,6 +14,7 @@ async fn main() -> Result<()> {
 
     let addr = "0.0.0.0:6687";
     let app = get_router();
+
     info!("Listener on:{}", addr);
     let listener = TcpListener::bind(&addr).await?;
     axum::serve(listener, app.into_make_service()).await?;
