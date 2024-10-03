@@ -97,7 +97,7 @@ mod tests {
     #[tokio::test]
     async fn creat_and_verify_should_test() -> anyhow::Result<()> {
         let tdb = TestPg::new(
-            "postgres://postgres:123321@127.0.0.1:5432".to_string(),
+            "postgres://postgres:123321@localhost:5432".to_string(),
             Path::new("../migrations"),
         );
         let pool = tdb.get_pool().await;
