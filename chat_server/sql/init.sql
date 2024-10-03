@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(64) NOT NULL,
     -- hashed argon2 password
     -- 哈希argon2密码
-    password VARCHAR(64) NOT NULL,
+    password_hash VARCHAR(64) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 --create index  for  users for email
