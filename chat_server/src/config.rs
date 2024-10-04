@@ -6,6 +6,7 @@ use std::fs::File;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     pub server: ServerConfig,
+    pub auth: AuthConfig,
     // pub host: String,
     // pub port: u16,
     // pub user: String,
@@ -16,15 +17,17 @@ pub struct AppConfig {
 pub struct ServerConfig {
     // pub host: String,
     pub port: u16,
+    pub db_url: String,
 }
-#[allow(unused)]
-#[derive(Debug, Clone)]
-pub(crate) struct AppStateInner {
-    pub(crate) config: AppConfig,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthConfig {
+    pub sk: String,
+    pub pk: String,
 }
 
 impl AppConfig {
     pub fn load() -> anyhow::Result<Self> {
+        println!("{:?}", env::current_dir());
         // 或者是 env
         let ret = match (
             File::open("app.yml"),
@@ -34,7 +37,7 @@ impl AppConfig {
             (Ok(reader), _, _) => serde_yaml::from_reader(reader),
             (_, Ok(reader), _) => serde_yaml::from_reader(reader),
             (_, _, Ok(path)) => serde_yaml::from_reader(File::open(path)?),
-            _ => bail!("can not find config file"),
+            _ => bail!("can not find config file1"),
         };
         Ok(ret?)
     }

@@ -14,7 +14,7 @@ async fn main() -> Result<()> {
     let config = AppConfig::load()?;
     info!("{config:?}");
     let addr = format!("0.0.0.0:{}", config.server.port);
-    let app = get_router(config);
+    let app = get_router(config).await?;
     info!("Listener on:{}", addr);
     let listener = TcpListener::bind(&addr).await?;
     axum::serve(listener, app.into_make_service()).await?;
