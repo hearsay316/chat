@@ -14,8 +14,15 @@ POST http://127.0.0.1:6688/api/signin
 Content-Type: application/json
 
 {
-  "email": "qazwsx2228333@163.com",
+  "email": "qazwsx2228@163.com",
   "password":"123456"
 }
+> {% client.global.set("auth_token", response.body.token); %}
+###
+
+
+GET http://127.0.0.1:6688/api/chat
+authorization: Bearer {{auth_token}}
 
 ###
+GET http://127.0.0.1:6688/api/chat

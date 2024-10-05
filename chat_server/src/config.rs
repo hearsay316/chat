@@ -2,6 +2,7 @@ use anyhow::bail;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs::File;
+use tracing::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
@@ -27,7 +28,7 @@ pub struct AuthConfig {
 
 impl AppConfig {
     pub fn load() -> anyhow::Result<Self> {
-        println!("{:?}", env::current_dir());
+        info!("运行的目录 {:?}", env::current_dir());
         // 或者是 env
         let ret = match (
             File::open("app.yml"),

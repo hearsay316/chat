@@ -1,16 +1,20 @@
 mod config;
 mod error;
 mod handlers;
+mod middlewares;
 mod models;
 mod utils;
 
+use crate::middlewares::verify_token;
 use crate::utils::{DecodingKey, EncodingKey};
 use anyhow::Context;
+use axum::middleware::from_fn_with_state;
 use axum::routing::{get, post};
 use axum::Router;
 pub use config::AppConfig;
 pub use error::{AppError, ErrOutput};
 use handlers::*;
+use middlewares::set_layers;
 pub use models::User;
 use sqlx::PgPool;
 use std::fmt;
@@ -35,8 +39,6 @@ pub async fn get_router(config: AppConfig) -> Result<Router, AppError> {
     let state = AppState::try_new(config).await?;
 
     let api = Router::new()
-        .route("/signin", post(signin_handler))
-        .route("/signup", post(signup_handler))
         .route("/chat", get(list_chat_handler).post(create_chat_handler))
         .route(
             "/chat/:id",
@@ -44,12 +46,16 @@ pub async fn get_router(config: AppConfig) -> Result<Router, AppError> {
                 .patch(update_chat_handler)
                 .delete(delete_chat_handler),
         )
-        .route("/chat/:id/message", get(list_message_handler));
+        .route("/chat/:id/message", get(list_message_handler))
+        .layer(from_fn_with_state(state.clone(), verify_token))
+        .route("/signin", post(signin_handler))
+        .route("/signup", post(signup_handler));
 
-    Ok(Router::new()
+    let router = Router::new()
         .route("/", get(index_handler))
         .nest("/api", api)
-        .with_state(state))
+        .with_state(state);
+    Ok(set_layers(router))
 }
 
 impl Deref for AppState {
