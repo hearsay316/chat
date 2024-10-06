@@ -38,3 +38,51 @@ pub async fn verify_token(State(state): State<AppState>, req: Request, next: Nex
         };
     next.run(req).await
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use anyhow::Result;
+    use axum::body::Body;
+    use axum::middleware::{ from_fn_with_state};
+    use axum::Router;
+    use axum::routing::get;
+    use tower::ServiceExt;
+    use crate::{AppConfig, User};
+
+    async fn handler(_req: Request) -> impl IntoResponse {
+        (StatusCode::OK, "OK")
+    }
+    #[tokio::test]
+    async fn verify_token_middleware_should_word() -> Result<()> {
+        let config = AppConfig::load()?;
+        let (_tdb, state) = AppState::new_for_test(config).await?;
+        let user = User::new(1, "zhang", "qazwsx2228@163.com");
+        let token = state.ek.sign(user)?;
+        let app = Router::new()
+            .route("/app", get(handler))
+            .layer(from_fn_with_state(state.clone(), verify_token))
+            .with_state(state);
+        // 有token
+        let req = Request::builder().uri("/app")
+            .header("authorization",format!("Bearer {}",token))
+            .body(Body::empty())?;
+        let res = app.clone().oneshot(req).await?;
+        println!("{:?}",res);
+        assert_eq!(res.status(),StatusCode::OK);
+        // 没有token
+        let req = Request::builder().uri("/app")
+            .body(Body::empty())?;
+        let res = app.clone().oneshot(req).await?;
+        println!("{:?}",res);
+        assert_eq!(res.status(),StatusCode::UNAUTHORIZED);
+
+        // 错误 token
+        let req = Request::builder().uri("/app")
+            .header("authorization","Bearer  no token")
+            .body(Body::empty())?;
+        let res = app.clone().oneshot(req).await?;
+        println!("{:?}",res);
+        assert_eq!(res.status(),StatusCode::FORBIDDEN);
+        Ok(())
+    }
+}

@@ -26,3 +26,8 @@ authorization: Bearer {{auth_token}}
 
 ###
 GET http://127.0.0.1:6688/api/chat
+
+
+
+###
+POST http://127.0.0.1:6688/api/chat/5
