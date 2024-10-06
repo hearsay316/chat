@@ -41,13 +41,13 @@ pub async fn verify_token(State(state): State<AppState>, req: Request, next: Nex
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{AppConfig, User};
     use anyhow::Result;
     use axum::body::Body;
-    use axum::middleware::{ from_fn_with_state};
-    use axum::Router;
+    use axum::middleware::from_fn_with_state;
     use axum::routing::get;
+    use axum::Router;
     use tower::ServiceExt;
-    use crate::{AppConfig, User};
 
     async fn handler(_req: Request) -> impl IntoResponse {
         (StatusCode::OK, "OK")
@@ -63,26 +63,27 @@ mod tests {
             .layer(from_fn_with_state(state.clone(), verify_token))
             .with_state(state);
         // 有token
-        let req = Request::builder().uri("/app")
-            .header("authorization",format!("Bearer {}",token))
+        let req = Request::builder()
+            .uri("/app")
+            .header("authorization", format!("Bearer {}", token))
             .body(Body::empty())?;
         let res = app.clone().oneshot(req).await?;
-        println!("{:?}",res);
-        assert_eq!(res.status(),StatusCode::OK);
+        println!("{:?}", res);
+        assert_eq!(res.status(), StatusCode::OK);
         // 没有token
-        let req = Request::builder().uri("/app")
-            .body(Body::empty())?;
+        let req = Request::builder().uri("/app").body(Body::empty())?;
         let res = app.clone().oneshot(req).await?;
-        println!("{:?}",res);
-        assert_eq!(res.status(),StatusCode::UNAUTHORIZED);
+        println!("{:?}", res);
+        assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
 
         // 错误 token
-        let req = Request::builder().uri("/app")
-            .header("authorization","Bearer  no token")
+        let req = Request::builder()
+            .uri("/app")
+            .header("authorization", "Bearer  no token")
             .body(Body::empty())?;
         let res = app.clone().oneshot(req).await?;
-        println!("{:?}",res);
-        assert_eq!(res.status(),StatusCode::FORBIDDEN);
+        println!("{:?}", res);
+        assert_eq!(res.status(), StatusCode::FORBIDDEN);
         Ok(())
     }
 }
