@@ -3,11 +3,21 @@ POST http://127.0.0.1:6688/api/signup
 Content-Type: application/json
 
 {
+  "workspace": "acme",
   "fullname": "zhangliqun",
   "email": "qazwsx2228@163.com",
   "password":"123456"
 }
+### GET request to example server
+POST http://127.0.0.1:6688/api/signup
+Content-Type: application/json
 
+{
+  "workspace": "acme",
+  "fullname": "zhangli",
+  "email": "908388349@qq.com",
+  "password":"123456"
+}
 ###
 
 POST http://127.0.0.1:6688/api/signin
@@ -25,8 +35,8 @@ GET http://127.0.0.1:6688/api/chat
 authorization: Bearer {{auth_token}}
 
 ###
-GET http://127.0.0.1:6688/api/chat
-
+GET http://127.0.0.1:6688/api/users
+authorization: Bearer {{auth_token}}
 
 
 ###

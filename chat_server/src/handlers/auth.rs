@@ -53,7 +53,7 @@ mod tests {
     async fn signup_should_word() -> Result<()> {
         let config = AppConfig::load()?;
         let (_tdb, state) = AppState::new_for_test(config).await?;
-        let input = CreateUser::new("qazwsx2228@163.com", "zhang", "Hunter42");
+        let input = CreateUser::new("none", "qazwsx2228@163.com", "zhang", "Hunter42");
         let ret = signup_handler(State(state), Json(input))
             .await?
             .into_response();
@@ -71,7 +71,7 @@ mod tests {
     async fn signin_should_word() -> Result<()> {
         let config = AppConfig::load()?;
         let (_tdb, state) = AppState::new_for_test(config).await?;
-        let user = CreateUser::new("qazwsx2228@163.com", "zhang", "Hunter42");
+        let user = CreateUser::new("none", "qazwsx2228@163.com", "zhang", "Hunter42");
         User::create(&user, &state.pool).await?;
         let input = SigninUser::new("qazwsx2228@163.com", "Hunter42");
         let ret = signin_handler(State(state), Json(input))
@@ -88,7 +88,7 @@ mod tests {
     async fn signin_duplicate_user_should_409() -> Result<()> {
         let config = AppConfig::load()?;
         let (_tdb, state) = AppState::new_for_test(config).await?;
-        let input = CreateUser::new("qazwsx22281@163.com", "zhang", "Hunter42");
+        let input = CreateUser::new("none", "qazwsx22281@163.com", "zhang", "Hunter42");
         let _ret = signup_handler(State(state.clone()), Json(input.clone())).await?;
         let ret2 = signup_handler(State(state.clone()), Json(input.clone()))
             .await

@@ -1,4 +1,6 @@
 mod user;
+mod workspace;
+
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 
@@ -7,12 +9,26 @@ pub use user::{CreateUser, SigninUser};
 #[derive(FromRow, Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct User {
     pub id: i64,
+    pub ws_id: i64,
     pub fullname: String,
     pub email: String,
     #[sqlx(default)]
     #[serde(skip)]
     pub password_hash: Option<String>,
     pub created_at: DateTime<Local>,
+}
+#[derive(FromRow, Debug, Clone, Deserialize, Serialize, PartialEq)]
+pub struct WorkSpace {
+    pub id: i64,
+    pub name: String,
+    pub owner_id: i64,
+    pub created_at: DateTime<Local>,
+}
+#[derive(FromRow, Debug, Clone, Deserialize, Serialize, PartialEq)]
+pub struct ChatUser {
+    pub id: i64,
+    pub fullname: String,
+    pub email: String,
 }
 
 // fn b64_decode<'de, S>(deserializer: S) -> Result< DateTime<FixedOffset>, S::Error>
