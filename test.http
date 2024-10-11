@@ -19,7 +19,6 @@ Content-Type: application/json
   "password":"123456"
 }
 ###
-
 POST http://127.0.0.1:6688/api/signin
 Content-Type: application/json
 
@@ -29,15 +28,41 @@ Content-Type: application/json
 }
 > {% client.global.set("auth_token", response.body.token); %}
 ###
-
-
-GET http://127.0.0.1:6688/api/chat
-authorization: Bearer {{auth_token}}
-
-###
 GET http://127.0.0.1:6688/api/users
 authorization: Bearer {{auth_token}}
 
+###
+
+
+POST http://127.0.0.1:6688/api/chats
+Content-Type: application/json
+authorization: Bearer {{auth_token}}
+
+{
+  "name": "acme",
+  "members": [1, 2],
+  "public": false
+}
 
 ###
-POST http://127.0.0.1:6688/api/chat/5
+GET http://127.0.0.1:6688/api/chats
+authorization: Bearer {{auth_token}}
+
+###
+GET http://127.0.0.1:6688/api/chats/2
+authorization: Bearer {{auth_token}}
+
+###
+PATCH http://127.0.0.1:6688/api/chats/2
+Content-Type: application/json
+authorization: Bearer {{auth_token}}
+
+{
+  "name": "acme1",
+  "members": [1, 2],
+  "public": true
+}
+
+###
+DELETE http://127.0.0.1:6688/api/chats/2
+authorization: Bearer {{auth_token}}

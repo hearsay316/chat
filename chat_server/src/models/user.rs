@@ -49,12 +49,12 @@ impl User {
         RETURNING id ,ws_id,fullname,email,created_at
         "#,
         )
-        .bind(ws.id)
-        .bind(&input.email)
-        .bind(&input.fullname)
-        .bind(password_hash)
-        .fetch_one(pool)
-        .await?;
+            .bind(ws.id)
+            .bind(&input.email)
+            .bind(&input.fullname)
+            .bind(password_hash)
+            .fetch_one(pool)
+            .await?;
         if ws.owner_id == 0 {
             ws.update_owner(user.id as _, pool).await?;
         }
@@ -73,9 +73,9 @@ impl User {
         let user: Option<User> = sqlx::query_as(
             "SELECT id,ws_id,fullname,email,password_hash,created_at FROM users WHERE email = $1",
         )
-        .bind(&input.email)
-        .fetch_optional(pool)
-        .await?;
+            .bind(&input.email)
+            .fetch_optional(pool)
+            .await?;
         match user {
             Some(mut user) => {
                 let password_hash = mem::take(&mut user.password_hash);
@@ -92,7 +92,31 @@ impl User {
     }
 }
 impl ChatUser {
-    // pub async fn fetch_all(user:&User)
+    pub async fn fetch_by_ids(ids: &[i64], pool: &PgPool) -> Result<Vec<Self>, AppError> {
+        let users = sqlx::query_as(
+            r#"
+        SELECT id, fullname, email
+        FROM users
+        WHERE id = ANY($1)
+        "#,
+        ).bind(&ids)
+            .fetch_all(pool)
+            .await.expect("44444");
+        Ok(users)
+    }
+    #[allow(unused)]
+    pub async fn fetch_all(ws_is: u64, pool: &PgPool) -> Result<Vec<Self>, AppError> {
+        let users = sqlx::query_as(
+            r#"
+            SELECT id ,fullname, email
+            FROM users
+            WHERE ws_id  = $1
+            "#
+        )
+            .bind(ws_is as i64)
+            .fetch_all(pool).await?;
+        Ok(users)
+    }
 }
 fn hash_password(password: &str) -> Result<String, AppError> {
     let salt = SaltString::generate(&mut OsRng);

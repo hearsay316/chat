@@ -21,6 +21,11 @@ pub enum AppError {
 
     #[error("Email Already Exists :{0}")]
     EmailAlreadyExists(String),
+    #[error("Create chat error: {0}")]
+    CreateChatError(String),
+
+    #[error("Not found: {0}")]
+    NotFound(String),
 }
 impl ErrOutput {
     pub(crate) fn new(error: impl Into<String>) -> Self {
@@ -37,6 +42,8 @@ impl IntoResponse for AppError {
             Self::JWTError(_) => StatusCode::FORBIDDEN,
             Self::HttpHeaderError(_) => StatusCode::UNPROCESSABLE_ENTITY,
             Self::EmailAlreadyExists(_) => StatusCode::CONFLICT,
+            Self::CreateChatError(_)=>StatusCode::BAD_REQUEST,
+            Self::NotFound(_)=>StatusCode::NOT_FOUND,
         };
         (state, Json(ErrOutput::new(self.to_string()))).into_response()
     }

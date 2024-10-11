@@ -15,7 +15,7 @@ pub use config::AppConfig;
 pub use error::{AppError, ErrOutput};
 use handlers::*;
 use middlewares::set_layers;
-pub use models::User;
+pub use models::*;
 use sqlx::PgPool;
 use std::fmt;
 use std::fmt::Formatter;
@@ -40,10 +40,11 @@ pub async fn get_router(config: AppConfig) -> Result<Router, AppError> {
 
     let api = Router::new()
         .route("/users", get(list_chat_users_handler))
-        .route("/chat", get(list_chat_handler).post(create_chat_handler))
+        .route("/chats", get(list_chat_handler).post(create_chat_handler))
         .route(
-            "/chat/:id",
-            post(send_message_handler)
+            "/chats/:id",
+                 get(get_chat_handler)
+                .post(send_message_handler)
                 .patch(update_chat_handler)
                 .delete(delete_chat_handler),
         )
@@ -131,7 +132,7 @@ pub async fn get_test_pool(url: Option<&str>) -> (sqlx_db_tester::TestPg, PgPool
     let tdb = sqlx_db_tester::TestPg::new(url, std::path::Path::new("../migrations"));
     let pool = tdb.get_pool().await;
     let sql = include_str!("../fixtures/test.sql").split(";");
-    println!("{:?}", sql);
+    // println!("{:?}", sql);
     let mut ts = pool.begin().await.expect("begin transaction failed");
     for s in sql {
         if s.trim().is_empty() {

@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use sqlx::FromRow;
 pub use user::{CreateUser, SigninUser};
+pub use chat::{CreateChat};
 #[derive(FromRow, Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct User {
     pub id: i64,
@@ -73,7 +74,6 @@ pub struct Chat {
     pub id: i64,
     pub ws_id: i64,
     pub name: Option<String>,
-    pub email: String,
     pub r#type: ChatType,
     pub members: Vec<i64>,
     pub created_at: DateTime<Local>,
