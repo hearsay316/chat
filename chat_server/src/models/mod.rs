@@ -5,9 +5,9 @@ mod workspace;
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 
+pub use chat::CreateChat;
 use sqlx::FromRow;
 pub use user::{CreateUser, SigninUser};
-pub use chat::{CreateChat};
 #[derive(FromRow, Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct User {
     pub id: i64,

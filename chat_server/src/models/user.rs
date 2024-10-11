@@ -49,12 +49,12 @@ impl User {
         RETURNING id ,ws_id,fullname,email,created_at
         "#,
         )
-            .bind(ws.id)
-            .bind(&input.email)
-            .bind(&input.fullname)
-            .bind(password_hash)
-            .fetch_one(pool)
-            .await?;
+        .bind(ws.id)
+        .bind(&input.email)
+        .bind(&input.fullname)
+        .bind(password_hash)
+        .fetch_one(pool)
+        .await?;
         if ws.owner_id == 0 {
             ws.update_owner(user.id as _, pool).await?;
         }
@@ -73,9 +73,9 @@ impl User {
         let user: Option<User> = sqlx::query_as(
             "SELECT id,ws_id,fullname,email,password_hash,created_at FROM users WHERE email = $1",
         )
-            .bind(&input.email)
-            .fetch_optional(pool)
-            .await?;
+        .bind(&input.email)
+        .fetch_optional(pool)
+        .await?;
         match user {
             Some(mut user) => {
                 let password_hash = mem::take(&mut user.password_hash);
@@ -99,9 +99,11 @@ impl ChatUser {
         FROM users
         WHERE id = ANY($1)
         "#,
-        ).bind(&ids)
-            .fetch_all(pool)
-            .await.expect("44444");
+        )
+        .bind(ids)
+        .fetch_all(pool)
+        .await
+        .expect("44444");
         Ok(users)
     }
     #[allow(unused)]
@@ -111,10 +113,11 @@ impl ChatUser {
             SELECT id ,fullname, email
             FROM users
             WHERE ws_id  = $1
-            "#
+            "#,
         )
-            .bind(ws_is as i64)
-            .fetch_all(pool).await?;
+        .bind(ws_is as i64)
+        .fetch_all(pool)
+        .await?;
         Ok(users)
     }
 }

@@ -11,15 +11,23 @@ pub struct CreateChat {
 async fn get_type(input: &CreateChat, pool: &PgPool) -> Result<ChatType, AppError> {
     let len = input.members.len();
     if len < 2 {
-        return Err(AppError::CreateChatError("Chat must at least 2 members".to_string()));
+        return Err(AppError::CreateChatError(
+            "Chat must at least 2 members".to_string(),
+        ));
     }
 
     if len > 8 && input.name.is_none() {
-        return Err(AppError::CreateChatError("Group chat with more 8 members  must have a name".to_string()));
+        return Err(AppError::CreateChatError(
+            "Group chat with more 8 members  must have a name".to_string(),
+        ));
     }
-    let users = ChatUser::fetch_by_ids(&input.members, pool).await.expect("555555");
+    let users = ChatUser::fetch_by_ids(&input.members, pool)
+        .await
+        .expect("555555");
     if users.len() != len {
-        return Err(AppError::CreateChatError("Some members do not exist".to_string()));
+        return Err(AppError::CreateChatError(
+            "Some members do not exist".to_string(),
+        ));
     }
     let chat_type = match (&input.name, len) {
         (None, 2) => ChatType::Single,
@@ -46,12 +54,12 @@ impl Chat {
             RETURNING id, ws_id, name, type, members, created_at
             "#,
         )
-            .bind(ws_id as i64)
-            .bind(input.name)
-            .bind(chat_type)
-            .bind(input.members)
-            .fetch_one(pool)
-            .await?;
+        .bind(ws_id as i64)
+        .bind(input.name)
+        .bind(chat_type)
+        .bind(input.members)
+        .fetch_one(pool)
+        .await?;
         Ok(chat)
     }
     #[allow(unused)]
@@ -70,12 +78,12 @@ impl Chat {
                RETURNING id, ws_id, name, type, members, created_at
                "#,
         )
-            .bind(id as i64)
-            .bind(input.name)
-            .bind(chat_type)
-            .bind(input.members)
-            .fetch_one(pool)
-            .await?;
+        .bind(id as i64)
+        .bind(input.name)
+        .bind(chat_type)
+        .bind(input.members)
+        .fetch_one(pool)
+        .await?;
         Ok(chat)
     }
     #[allow(unused)]
@@ -88,9 +96,9 @@ impl Chat {
                RETURNING id, ws_id, name, type, members, created_at
                "#,
         )
-            .bind(ws_id as i64)
-            .fetch_one(pool)
-            .await?;
+        .bind(ws_id as i64)
+        .fetch_one(pool)
+        .await?;
         Ok(chat)
     }
     #[allow(unused)]
@@ -100,10 +108,11 @@ impl Chat {
             SELECT id ,ws_id, name, type,members,created_at
             FROM chats
             WHERE ws_id  = $1
-            "#
+            "#,
         )
-            .bind(ws_id as i64)
-            .fetch_all(pool).await?;
+        .bind(ws_id as i64)
+        .fetch_all(pool)
+        .await?;
         Ok(chats)
     }
     #[allow(unused)]
@@ -113,10 +122,11 @@ impl Chat {
             SELECT id,ws_id,name,type,members,created_at
             FROM chats
             WHERE id =$1
-            "#
+            "#,
         )
-            .bind(id as i64)
-            .fetch_optional(pool).await?;
+        .bind(id as i64)
+        .fetch_optional(pool)
+        .await?;
         Ok(chat)
     }
 }
@@ -126,7 +136,11 @@ impl CreateChat {
     // pub members: Vec<i64>,
     // pub public: bool,
     fn new(name: &str, members: &[i64], public: bool) -> Self {
-        let name = if name.is_empty() { None } else { Some(name.to_string()) };
+        let name = if name.is_empty() {
+            None
+        } else {
+            Some(name.to_string())
+        };
         Self {
             name,
             members: members.to_vec(),
@@ -136,8 +150,8 @@ impl CreateChat {
 }
 #[cfg(test)]
 mod tests {
-    use crate::get_test_pool;
     use super::*;
+    use crate::get_test_pool;
     #[tokio::test]
     async fn create_single_chat_should_work() {
         let (_tdb, pool) = get_test_pool(None).await;
@@ -178,7 +192,9 @@ mod tests {
         let chat = Chat::delete(chat.id as _, &pool)
             .await
             .expect("create chat failed");
-        let chat = Chat::get_by_id(chat.id as _, &pool).await.expect("chat_get_by_id_should_work");
+        let chat = Chat::get_by_id(chat.id as _, &pool)
+            .await
+            .expect("chat_get_by_id_should_work");
         assert_eq!(chat, None);
     }
     #[tokio::test]
@@ -206,7 +222,10 @@ mod tests {
     #[tokio::test]
     async fn chat_get_by_id_should_work() {
         let (_tdb, pool) = get_test_pool(None).await;
-        let chat = Chat::get_by_id(1, &pool).await.expect("chat_get_by_id_should_work").unwrap();
+        let chat = Chat::get_by_id(1, &pool)
+            .await
+            .expect("chat_get_by_id_should_work")
+            .unwrap();
         println!("{chat:?}");
         assert_eq!(chat.id, 1);
         assert_eq!(chat.name.unwrap(), "general");
@@ -217,7 +236,9 @@ mod tests {
     #[tokio::test]
     async fn chat_get_fetch_all_should_work() {
         let (_tdb, pool) = get_test_pool(None).await;
-        let chats = Chat::fetch_all(1, &pool).await.expect("chat_get_fetch_all_should_work");
+        let chats = Chat::fetch_all(1, &pool)
+            .await
+            .expect("chat_get_fetch_all_should_work");
         println!("{chats:?}");
 
         assert_eq!(chats.len(), 4);

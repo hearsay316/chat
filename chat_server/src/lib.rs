@@ -43,7 +43,7 @@ pub async fn get_router(config: AppConfig) -> Result<Router, AppError> {
         .route("/chats", get(list_chat_handler).post(create_chat_handler))
         .route(
             "/chats/:id",
-                 get(get_chat_handler)
+            get(get_chat_handler)
                 .post(send_message_handler)
                 .patch(update_chat_handler)
                 .delete(delete_chat_handler),
