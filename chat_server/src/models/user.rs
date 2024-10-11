@@ -147,8 +147,7 @@ impl User {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sqlx_db_tester::TestPg;
-    use std::path::Path;
+    use crate::get_test_pool;
 
     #[test]
     fn hash_password_and_verify_should_work() -> anyhow::Result<()> {
@@ -165,13 +164,8 @@ mod tests {
 
     #[tokio::test]
     async fn create_duplicate_user_should_fail() -> anyhow::Result<()> {
-        let tdb = TestPg::new(
-            "postgres://postgres:123321@localhost:5432".to_string(),
-            Path::new("../migrations"),
-        );
-        let pool = tdb.get_pool().await;
-        let input = CreateUser::new("none", "qazwsx228@163.com", "qazwsx", "123321");
-        User::create(&input, &pool).await?;
+        let (_tdb, pool) = get_test_pool(None).await;
+        let input = CreateUser::new("acme", "tchen1@acme.org", "qazwsx", "123321");
         let ret = User::create(&input, &pool).await;
         match ret {
             Err(AppError::EmailAlreadyExists(email)) => {
@@ -183,11 +177,7 @@ mod tests {
     }
     #[tokio::test]
     async fn creat_and_verify_should_test() -> anyhow::Result<()> {
-        let tdb = TestPg::new(
-            "postgres://postgres:123321@localhost:5432".to_string(),
-            Path::new("../migrations"),
-        );
-        let pool = tdb.get_pool().await;
+        let (_tdb, pool) = get_test_pool(None).await;
         // let email = "qazwsx2228@163.com";
         // let fullname = "zhang";
         // let password = "hunter42";

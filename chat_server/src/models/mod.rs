@@ -1,3 +1,4 @@
+mod chat;
 mod user;
 mod workspace;
 
@@ -46,3 +47,34 @@ pub struct ChatUser {
 //     let created_at_china = deserializer.with_timezone(&china_offset);
 //     Ok(created_at_china)
 // }
+/*
+
+CREATE TABLE IF NOT EXISTS chats
+(
+    id         BIGSERIAL PRIMARY KEY,
+    name       VARCHAR(64),
+    type       chat_type    NOT NULL,
+    -- user id  list
+    members    BIGINT[]     NOT NULL,
+    created_at timestamptz DEFAULT CURRENT_TIMESTAMP
+);
+*/
+// ENUM ('single', 'group', 'private_channel', 'public_channel');
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, sqlx::Type)]
+#[sqlx(type_name = "chat_type", rename_all = "snake_case")]
+pub enum ChatType {
+    Single,
+    Group,
+    PrivateChannel,
+    PublicChannel,
+}
+#[derive(FromRow, Debug, Clone, Deserialize, Serialize, PartialEq)]
+pub struct Chat {
+    pub id: i64,
+    pub ws_id: i64,
+    pub name: Option<String>,
+    pub email: String,
+    pub r#type: ChatType,
+    pub members: Vec<i64>,
+    pub created_at: DateTime<Local>,
+}

@@ -50,7 +50,7 @@ mod tests {
     use crate::{AppConfig, ErrOutput};
 
     #[tokio::test]
-    async fn signup_should_word() -> Result<()> {
+    async fn signup_should_work() -> Result<()> {
         let config = AppConfig::load()?;
         let (_tdb, state) = AppState::new_for_test(config).await?;
         let input = CreateUser::new("none", "qazwsx2228@163.com", "zhang", "Hunter42");
@@ -68,12 +68,14 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn signin_should_word() -> Result<()> {
+    async fn signin_should_work() -> Result<()> {
         let config = AppConfig::load()?;
         let (_tdb, state) = AppState::new_for_test(config).await?;
-        let user = CreateUser::new("none", "qazwsx2228@163.com", "zhang", "Hunter42");
-        User::create(&user, &state.pool).await?;
-        let input = SigninUser::new("qazwsx2228@163.com", "Hunter42");
+        let email = "tchen1@acme.org";
+        let password = "123456";
+        // let user = CreateUser::new("none", "qazwsx2228@163.com", "zhang", "Hunter42");
+        // User::create(&user, &state.pool).await?;
+        let input = SigninUser::new(email, password);
         let ret = signin_handler(State(state), Json(input))
             .await?
             .into_response();
@@ -88,9 +90,9 @@ mod tests {
     async fn signin_duplicate_user_should_409() -> Result<()> {
         let config = AppConfig::load()?;
         let (_tdb, state) = AppState::new_for_test(config).await?;
-        let input = CreateUser::new("none", "qazwsx22281@163.com", "zhang", "Hunter42");
-        let _ret = signup_handler(State(state.clone()), Json(input.clone())).await?;
-        let ret2 = signup_handler(State(state.clone()), Json(input.clone()))
+        let input = CreateUser::new("acme", "tchen1@acme.org", "Tyr chen", "123456");
+        // let _ret = signup_handler(State(state.clone()), Json(input.clone())).await?;
+        let ret2 = signup_handler(State(state), Json(input))
             .await
             .into_response();
         // assert_eq!(ret2.status(),StatusCode::CONFLICT);
@@ -101,7 +103,7 @@ mod tests {
         // println!("{:?}", msg["error"]);
         let msg = msg.get("error").unwrap().as_str().unwrap();
         // println!("{:?}", msg.get("error").unwrap().as_str().unwrap());
-        assert_eq!(msg, "Email Already Exists :qazwsx22281@163.com");
+        assert_eq!(msg, "Email Already Exists :tchen1@acme.org");
         Ok(())
     }
 

@@ -102,18 +102,12 @@ impl fmt::Debug for AppStateInner {
 #[cfg(test)]
 impl AppState {
     async fn new_for_test(config: AppConfig) -> Result<(sqlx_db_tester::TestPg, Self), AppError> {
-        use sqlx_db_tester::TestPg;
         let dk = DecodingKey::load(&config.auth.pk).context("load pk key failed")?;
         let ek = EncodingKey::load(&config.auth.sk).context("load sk key failed")?;
 
         let server_url = config.server.db_url.split("/chat").next().unwrap();
 
-        let tdb = TestPg::new(
-            server_url.to_string(),
-            std::path::Path::new("../migrations"),
-        );
-
-        let pool = tdb.get_pool().await;
+        let (tdb, pool) = get_test_pool(Some(server_url)).await;
         Ok((
             tdb,
             Self {
@@ -126,4 +120,25 @@ impl AppState {
             },
         ))
     }
+}
+#[cfg(test)]
+pub async fn get_test_pool(url: Option<&str>) -> (sqlx_db_tester::TestPg, PgPool) {
+    use sqlx::Executor;
+    let url = match url {
+        None => "postgres://postgres:123321@localhost:5432".to_string(),
+        Some(url) => url.to_string(),
+    };
+    let tdb = sqlx_db_tester::TestPg::new(url, std::path::Path::new("../migrations"));
+    let pool = tdb.get_pool().await;
+    let sql = include_str!("../fixtures/test.sql").split(";");
+    println!("{:?}", sql);
+    let mut ts = pool.begin().await.expect("begin transaction failed");
+    for s in sql {
+        if s.trim().is_empty() {
+            continue;
+        }
+        ts.execute(s).await.expect("expect sql failed");
+    }
+    ts.commit().await.expect("commit transaction failed");
+    (tdb, pool)
 }

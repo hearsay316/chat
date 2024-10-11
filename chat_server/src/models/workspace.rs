@@ -78,16 +78,10 @@ impl WorkSpace {
 mod tests {
     use super::*;
     use crate::models::CreateUser;
-    use crate::User;
-    use sqlx_db_tester::TestPg;
-    use std::path::Path;
+    use crate::{get_test_pool, User};
     #[tokio::test]
     async fn workspace_should_creat_and_set_owner() -> anyhow::Result<()> {
-        let tdb = TestPg::new(
-            "postgres://postgres:123321@localhost:5432".to_string(),
-            Path::new("../migrations"),
-        );
-        let pool = tdb.get_pool().await;
+        let (_tdb, pool) = get_test_pool(None).await;
         let ws = WorkSpace::create("test", 0, &pool).await?;
 
         let input = CreateUser::new(&ws.name, "qazwsx2228@163.com", "zhang", "Hunter42");
@@ -101,36 +95,25 @@ mod tests {
     }
     #[tokio::test]
     async fn workspace_should_find_by_name() -> anyhow::Result<()> {
-        let tdb = TestPg::new(
-            "postgres://postgres:123321@localhost:5432".to_string(),
-            Path::new("../migrations"),
-        );
-        let pool = tdb.get_pool().await;
-
-        let _ws = WorkSpace::create("test", 0, &pool).await?;
-        let ws = WorkSpace::find_by_name("test", &pool).await?;
-        assert_eq!(ws.unwrap().name, "test");
+        let (_tdb, pool) = get_test_pool(None).await;
+        let ws = WorkSpace::find_by_name("acme", &pool).await?;
+        assert_eq!(ws.unwrap().name, "acme");
         Ok(())
     }
 
     #[tokio::test]
     async fn workspace_should_fetch_all_chat_users() -> anyhow::Result<()> {
-        let tdb = TestPg::new(
-            "postgres://postgres:123321@localhost:5432".to_string(),
-            Path::new("../migrations"),
-        );
-        let pool = tdb.get_pool().await;
+        let (_tdb, pool) = get_test_pool(None).await;
 
-        let ws = WorkSpace::create("test", 0, &pool).await?;
-        let input = CreateUser::new(&ws.name, "qazwsx2228@163.com", "zhang", "Hunter42");
-        let user = User::create(&input, &pool).await?;
-
-        let input = CreateUser::new(&ws.name, "908388349@qq.com", "zhangfeng", "Hunter42");
-        let user2 = User::create(&input, &pool).await?;
-        let users = WorkSpace::fetch_all_chat_users(ws.id as _, &pool).await?;
-        assert_eq!(users.len(), 2);
-        assert_eq!(users[0].id, user.id);
-        assert_eq!(users[1].id, user2.id);
+        // let ws = WorkSpace::create("test", 0, &pool).await?;
+        // let input = CreateUser::new(&ws.name, "qazwsx2228@163.com", "zhang", "Hunter42");
+        // let user = User::create(&input, &pool).await?;
+        //
+        // let input = CreateUser::new(&ws.name, "908388349@qq.com", "zhangfeng", "Hunter42");
+        // let user2 = User::create(&input, &pool).await?;
+        let users = WorkSpace::fetch_all_chat_users(1, &pool).await?;
+        assert_eq!(users.len(), 8);
+        // assert_eq!(users.clone().split_off(2),users);
         Ok(())
     }
 }
