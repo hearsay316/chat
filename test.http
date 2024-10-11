@@ -66,3 +66,24 @@ authorization: Bearer {{auth_token}}
 ###
 DELETE http://127.0.0.1:6688/api/chats/2
 authorization: Bearer {{auth_token}}
+
+
+### upload  file
+POST http://127.0.0.1:6688/api/upload
+authorization: Bearer {{auth_token}}
+Content-Type: multipart/form-data; boundary=MyBoundary
+
+--MyBoundary
+Content-Disposition: form-data; filename="details.png"
+Content-Type: application/octet-stream
+
+< C:\Users\hearsay316\Pictures\details.png
+--MyBoundary
+Content-Disposition: form-data; filename="hello.txt"
+Content-Type: text/plain
+
+Hello, World!
+--MyBoundary--
+### upload  file
+GET  http://127.0.0.1:6688/api/files/1/7fb/758/dc52840e6bd4c4d15c2d89d6c83aaf12b0.png
+authorization: Bearer {{auth_token}}

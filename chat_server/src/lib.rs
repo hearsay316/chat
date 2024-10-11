@@ -49,6 +49,8 @@ pub async fn get_router(config: AppConfig) -> Result<Router, AppError> {
                 .delete(delete_chat_handler),
         )
         .route("/chat/:id/message", get(list_message_handler))
+        .route("/upload", post(upload_handler))
+        .route("/files/:ws_id/*path", get(file_handler))
         .layer(from_fn_with_state(state.clone(), verify_token))
         .route("/signin", post(signin_handler))
         .route("/signup", post(signup_handler));
@@ -103,6 +105,9 @@ impl fmt::Debug for AppStateInner {
 #[cfg(test)]
 impl AppState {
     async fn new_for_test(config: AppConfig) -> Result<(sqlx_db_tester::TestPg, Self), AppError> {
+        tokio::fs::create_dir_all(&config.server.base_dir)
+            .await
+            .context("create base_dir failed")?;
         let dk = DecodingKey::load(&config.auth.pk).context("load pk key failed")?;
         let ek = EncodingKey::load(&config.auth.sk).context("load sk key failed")?;
 

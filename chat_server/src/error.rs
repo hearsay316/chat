@@ -15,17 +15,18 @@ pub enum AppError {
     PassWordError(#[from] argon2::password_hash::Error),
     #[error("jwt error: {0}")]
     JWTError(#[from] jwt_simple::Error),
-
-    #[error("http header parse error:{0}")]
-    HttpHeaderError(#[from] http::header::ToStrError),
-
-    #[error("Email Already Exists :{0}")]
-    EmailAlreadyExists(String),
     #[error("Create chat error: {0}")]
     CreateChatError(String),
 
     #[error("Not found: {0}")]
     NotFound(String),
+    #[error("io error: {0}")]
+    IoError(#[from] std::io::Error),
+    #[error("http header parse error:{0}")]
+    HttpHeaderError(#[from] http::header::ToStrError),
+
+    #[error("Email Already Exists :{0}")]
+    EmailAlreadyExists(String),
 }
 impl ErrOutput {
     pub(crate) fn new(error: impl Into<String>) -> Self {
@@ -44,6 +45,7 @@ impl IntoResponse for AppError {
             Self::EmailAlreadyExists(_) => StatusCode::CONFLICT,
             Self::CreateChatError(_) => StatusCode::BAD_REQUEST,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
+            Self::IoError(_) => StatusCode::BAD_REQUEST,
         };
         (state, Json(ErrOutput::new(self.to_string()))).into_response()
     }
