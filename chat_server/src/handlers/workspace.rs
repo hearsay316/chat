@@ -1,4 +1,3 @@
-use crate::models::WorkSpace;
 use crate::{AppError, AppState, User};
 use axum::extract::State;
 use axum::response::IntoResponse;
@@ -11,6 +10,6 @@ pub(crate) async fn list_chat_users_handler(
 ) -> Result<impl IntoResponse, AppError> {
     info!("user {user:?}");
     let ws_id = user.ws_id;
-    let users = WorkSpace::fetch_all_chat_users(ws_id as _, &state.pool).await?;
+    let users = state.fetch_chat_user_all(ws_id as _,).await?;
     Ok(Json(users))
 }

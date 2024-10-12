@@ -104,7 +104,8 @@ impl fmt::Debug for AppStateInner {
 }
 #[cfg(test)]
 impl AppState {
-    async fn new_for_test(config: AppConfig) -> Result<(sqlx_db_tester::TestPg, Self), AppError> {
+    async fn new_for_test() -> Result<(sqlx_db_tester::TestPg, Self), AppError> {
+        let config = AppConfig::load()?;
         tokio::fs::create_dir_all(&config.server.base_dir)
             .await
             .context("create base_dir failed")?;
