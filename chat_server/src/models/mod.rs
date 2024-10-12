@@ -1,5 +1,6 @@
 mod chat;
 mod file;
+mod message;
 mod user;
 mod workspace;
 
@@ -81,6 +82,29 @@ pub struct Chat {
 }
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ChatFile {
+    pub ws_id: u64,
     pub ext: String,
     pub hash: String,
+}
+/*
+
+-- create message table
+CREATE TABLE IF NOT EXISTS messages
+(
+    id         BIGSERIAL PRIMARY KEY,
+    chat_id    BIGINT NOT NULL  REFERENCES chats(id),
+    sender_id  BIGINT NOT NULL REFERENCES users (id),
+    content    TEXT   NOT NULL,
+    files      TEXT[],
+    created_at timestamptz DEFAULT CURRENT_TIMESTAMP
+);
+*/
+#[derive(Debug, Clone, FromRow, Deserialize, Serialize)]
+pub struct Message {
+    pub id: i64,
+    pub chat_id: i64,
+    pub sender_id: i64,
+    pub content: String,
+    pub files: Vec<String>,
+    pub created_at: DateTime<Local>,
 }
