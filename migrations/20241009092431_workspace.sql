@@ -35,3 +35,6 @@ COMMIT ;
 ALTER TABLE users
     ALTER COLUMN ws_id SET NOT NULL;
 
+
+
+

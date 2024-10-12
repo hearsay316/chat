@@ -44,9 +44,9 @@ pub(crate) async fn signin_handler(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ErrOutput;
     use anyhow::Result;
     use http_body_util::BodyExt;
-    use crate::{ ErrOutput};
 
     #[tokio::test]
     async fn signup_should_work() -> Result<()> {

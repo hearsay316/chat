@@ -20,7 +20,8 @@ async fn get_type(input: &CreateChat, app_state: &AppState) -> Result<ChatType, 
             "Group chat with more 8 members  must have a name".to_string(),
         ));
     }
-    let users = &app_state.fetch_chat_user_by_ids(&input.members)
+    let users = &app_state
+        .fetch_chat_user_by_ids(&input.members)
         .await
         .expect("555555");
     if users.len() != len {
@@ -43,10 +44,10 @@ async fn get_type(input: &CreateChat, app_state: &AppState) -> Result<ChatType, 
 }
 impl AppState {
     #[allow(unused)]
-    pub async fn create_chat(&self,input: CreateChat, ws_id: u64) -> Result<Chat, AppError> {
-        let chat_type = get_type(&input, &self).await?;
+    pub async fn create_chat(&self, input: CreateChat, ws_id: u64) -> Result<Chat, AppError> {
+        let chat_type = get_type(&input, self).await?;
         // match
-        let chat:Chat = sqlx::query_as(
+        let chat: Chat = sqlx::query_as(
             r#"
             INSERT INTO chats (ws_id, name, type, members)
             VALUES ($1, $2, $3, $4)
@@ -62,10 +63,10 @@ impl AppState {
         Ok(chat)
     }
     #[allow(unused)]
-    pub async fn update_chat(&self,input: CreateChat, id: u64) -> Result<Chat, AppError> {
-        let chat_type = get_type(&input, &self).await?;
+    pub async fn update_chat(&self, input: CreateChat, id: u64) -> Result<Chat, AppError> {
+        let chat_type = get_type(&input, self).await?;
         // match
-        let chat:Chat = sqlx::query_as(
+        let chat: Chat = sqlx::query_as(
             r#"
                UPDATE chats
                SET
@@ -86,7 +87,7 @@ impl AppState {
         Ok(chat)
     }
     #[allow(unused)]
-    pub async fn delete_chat(&self,ws_id: u64) -> Result<Chat, AppError> {
+    pub async fn delete_chat(&self, ws_id: u64) -> Result<Chat, AppError> {
         // match
         let chat = sqlx::query_as(
             r#"
@@ -101,7 +102,7 @@ impl AppState {
         Ok(chat)
     }
     #[allow(unused)]
-    pub async fn fetch_chat_all(&self,ws_id: u64) -> Result<Vec<Chat>, AppError> {
+    pub async fn fetch_chat_all(&self, ws_id: u64) -> Result<Vec<Chat>, AppError> {
         let chats = sqlx::query_as(
             r#"
             SELECT id ,ws_id, name, type,members,created_at
@@ -115,7 +116,7 @@ impl AppState {
         Ok(chats)
     }
     #[allow(unused)]
-    pub async fn get_chat_by_id(&self,id: u64) -> Result<Option<Chat>, AppError> {
+    pub async fn get_chat_by_id(&self, id: u64) -> Result<Option<Chat>, AppError> {
         let chat = sqlx::query_as(
             r#"
             SELECT id,ws_id,name,type,members,created_at
@@ -127,6 +128,20 @@ impl AppState {
         .fetch_optional(&self.pool)
         .await?;
         Ok(chat)
+    }
+    pub async fn is_chat_member(&self, chat_id: u64, user_id: u64) -> Result<bool, AppError> {
+        let is_members = sqlx::query(
+            r#"
+            SELECT 1
+            FROM chats
+            WHERE id = $1 AND $2 =ANY(members)
+            "#,
+        )
+        .bind(chat_id as i64)
+        .bind(user_id as i64)
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(is_members.is_some())
     }
 }
 #[cfg(test)]
@@ -152,10 +167,11 @@ mod tests {
     use super::*;
     #[tokio::test]
     async fn create_single_chat_should_work() {
-        let (_tdb, state  ) = AppState::new_for_test().await.unwrap();
+        let (_tdb, state) = AppState::new_for_test().await.unwrap();
         // let (_tdb, pool) = get_test_pool(None).await;
         let input = CreateChat::new("", &[1, 2], false);
-        let chat = state.create_chat(input, 1)
+        let chat = state
+            .create_chat(input, 1)
             .await
             .expect("create chat failed");
         assert_eq!(chat.ws_id, 1);
@@ -164,15 +180,17 @@ mod tests {
     }
     #[tokio::test]
     async fn update_single_chat_should_work() {
-        let (_tdb, state  ) = AppState::new_for_test().await.unwrap();
+        let (_tdb, state) = AppState::new_for_test().await.unwrap();
 
         let input = CreateChat::new("", &[1, 2], false);
-        let chat = state.create_chat(input, 1)
+        let chat = state
+            .create_chat(input, 1)
             .await
             .expect("create chat failed");
         println!("{chat:?}");
         let input = CreateChat::new("123", &[1, 2, 3], true);
-        let chat = state.update_chat(input, chat.id as _)
+        let chat = state
+            .update_chat(input, chat.id as _)
             .await
             .expect("create chat failed");
         println!("{chat:?}");
@@ -183,27 +201,31 @@ mod tests {
 
     #[tokio::test]
     async fn delete_single_chat_should_work() {
-        let (_tdb, state  ) = AppState::new_for_test().await.unwrap();
+        let (_tdb, state) = AppState::new_for_test().await.unwrap();
 
         let input = CreateChat::new("", &[1, 2], false);
-        let chat = state.create_chat(input, 1)
+        let chat = state
+            .create_chat(input, 1)
             .await
             .expect("create chat failed");
         println!("{chat:?}");
-        let chat = state.delete_chat(chat.id as _)
+        let chat = state
+            .delete_chat(chat.id as _)
             .await
             .expect("create chat failed");
-        let chat = state.get_chat_by_id(chat.id as _)
+        let chat = state
+            .get_chat_by_id(chat.id as _)
             .await
             .expect("chat_get_by_id_should_work");
         assert_eq!(chat, None);
     }
     #[tokio::test]
     async fn create_public_chat_should_work() {
-        let (_tdb, state  ) = AppState::new_for_test().await.unwrap();
+        let (_tdb, state) = AppState::new_for_test().await.unwrap();
 
         let input = CreateChat::new("general", &[1, 2, 3], true);
-        let chat = state.create_chat(input, 1)
+        let chat = state
+            .create_chat(input, 1)
             .await
             .expect("create chat failed");
         assert_eq!(chat.ws_id, 1);
@@ -212,10 +234,11 @@ mod tests {
     }
     #[tokio::test]
     async fn create_private_chat_should_work() {
-        let (_tdb, state  ) = AppState::new_for_test().await.unwrap();
+        let (_tdb, state) = AppState::new_for_test().await.unwrap();
 
         let input = CreateChat::new("general", &[1, 2, 3], false);
-        let chat = state.create_chat(input, 1)
+        let chat = state
+            .create_chat(input, 1)
             .await
             .expect("create chat failed");
         assert_eq!(chat.ws_id, 1);
@@ -224,9 +247,10 @@ mod tests {
     }
     #[tokio::test]
     async fn chat_get_by_id_should_work() {
-        let (_tdb, state  ) = AppState::new_for_test().await.unwrap();
+        let (_tdb, state) = AppState::new_for_test().await.unwrap();
 
-        let chat = state.get_chat_by_id(1)
+        let chat = state
+            .get_chat_by_id(1)
             .await
             .expect("chat_get_by_id_should_work")
             .unwrap();
@@ -239,13 +263,30 @@ mod tests {
 
     #[tokio::test]
     async fn chat_get_fetch_all_should_work() {
-        let (_tdb, state  ) = AppState::new_for_test().await.unwrap();
+        let (_tdb, state) = AppState::new_for_test().await.unwrap();
 
-        let chats = state.fetch_chat_all(1)
+        let chats = state
+            .fetch_chat_all(1)
             .await
             .expect("chat_get_fetch_all_should_work");
         println!("{chats:?}");
 
         assert_eq!(chats.len(), 4);
+    }
+
+    #[tokio::test]
+    async fn chat_member_should_work() {
+        let (_tdb, state) = AppState::new_for_test().await.unwrap();
+        let is_member = state.is_chat_member(1, 1).await.expect("is member failed");
+        println!("{is_member}");
+        assert!(is_member);
+        let is_member = state.is_chat_member(1, 6).await.expect("is member failed");
+        assert!(!is_member);
+
+        let is_member = state.is_chat_member(10, 1).await.expect("is member failed");
+        assert!(!is_member);
+
+        let is_member = state.is_chat_member(2, 4).await.expect("is member failed");
+        assert!(!is_member);
     }
 }

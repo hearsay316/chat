@@ -7,8 +7,7 @@ use argon2::password_hash::SaltString;
 
 use jwt_simple::prelude::{Deserialize, Serialize};
 
-use crate::models::{ChatUser};
-
+use crate::models::ChatUser;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CreateUser {
@@ -23,7 +22,7 @@ pub struct SigninUser {
     pub password: String,
 }
 impl AppState {
-    pub async fn find_user_by_email(&self,email: &str) -> Result<Option<User>, AppError> {
+    pub async fn find_user_by_email(&self, email: &str) -> Result<Option<User>, AppError> {
         let user =
             sqlx::query_as("SELECT id,ws_id,fullname,email,created_at FROM users WHERE email = $1")
                 .bind(email)
@@ -31,7 +30,7 @@ impl AppState {
                 .await?;
         Ok(user)
     }
-    pub async fn create_user(&self,input: &CreateUser) -> Result<User, AppError> {
+    pub async fn create_user(&self, input: &CreateUser) -> Result<User, AppError> {
         let user = self.find_user_by_email(&input.email).await?;
         if user.is_some() {
             return Err(AppError::EmailAlreadyExists(input.email.clone()));
@@ -56,12 +55,12 @@ impl AppState {
         .fetch_one(&self.pool)
         .await?;
         if ws.owner_id == 0 {
-            self.update_workspace_owner(ws,user.id as _).await?;
+            self.update_workspace_owner(ws, user.id as _).await?;
         }
         Ok(user)
     }
 
-    pub async fn verify_user(&self,input: &SigninUser) -> Result<Option<User>, AppError> {
+    pub async fn verify_user(&self, input: &SigninUser) -> Result<Option<User>, AppError> {
         // sqlx::query(
         //     r#"
         // SET TimeZone 'Asia/Shanghai';
@@ -91,7 +90,7 @@ impl AppState {
         }
     }
 
-    pub async fn fetch_chat_user_by_ids(&self,ids: &[i64]) -> Result<Vec<ChatUser>, AppError> {
+    pub async fn fetch_chat_user_by_ids(&self, ids: &[i64]) -> Result<Vec<ChatUser>, AppError> {
         let users = sqlx::query_as(
             r#"
         SELECT id, fullname, email
@@ -99,14 +98,14 @@ impl AppState {
         WHERE id = ANY($1)
         "#,
         )
-            .bind(ids)
-            .fetch_all(&self.pool)
-            .await
-            .expect("44444");
+        .bind(ids)
+        .fetch_all(&self.pool)
+        .await
+        .expect("44444");
         Ok(users)
     }
     #[allow(unused)]
-    pub async fn fetch_chat_user_all(&self,ws_is: u64) -> Result<Vec<ChatUser>, AppError> {
+    pub async fn fetch_chat_user_all(&self, ws_is: u64) -> Result<Vec<ChatUser>, AppError> {
         let users = sqlx::query_as(
             r#"
             SELECT id ,fullname, email
@@ -114,15 +113,13 @@ impl AppState {
             WHERE ws_id  = $1
             "#,
         )
-            .bind(ws_is as i64)
-            .fetch_all(&self.pool)
-            .await?;
+        .bind(ws_is as i64)
+        .fetch_all(&self.pool)
+        .await?;
         Ok(users)
     }
 }
-impl ChatUser {
-
-}
+impl ChatUser {}
 fn hash_password(password: &str) -> Result<String, AppError> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
@@ -192,7 +189,7 @@ mod tests {
 
     #[tokio::test]
     async fn create_duplicate_user_should_fail() -> anyhow::Result<()> {
-        let (_tdb, state  ) = AppState::new_for_test().await?;
+        let (_tdb, state) = AppState::new_for_test().await?;
         let input = CreateUser::new("acme", "tchen1@acme.org", "qazwsx", "123321");
         let ret = state.create_user(&input).await;
         match ret {
@@ -205,13 +202,13 @@ mod tests {
     }
     #[tokio::test]
     async fn creat_and_verify_should_test() -> anyhow::Result<()> {
-        let (_tdb, state  ) = AppState::new_for_test().await?;
+        let (_tdb, state) = AppState::new_for_test().await?;
 
         // let email = "qazwsx2228@163.com";
         // let fullname = "zhang";
         // let password = "hunter42";
         let input = CreateUser::new("none", "qazwsx2228@163.com", "zhang", "hunter42");
-        let user = state.create_user(&input, ).await?;
+        let user = state.create_user(&input).await?;
         assert_eq!(user.email, input.email);
         assert_eq!(user.email, input.email);
         assert_eq!(user.fullname, input.fullname);

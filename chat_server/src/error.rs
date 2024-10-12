@@ -29,7 +29,7 @@ pub enum AppError {
     EmailAlreadyExists(String),
     #[error("create message error :{0}")]
     CreateMessageError(String),
-    #[error("create chat File  error :{0}")]
+    #[error("{0}")]
     ChatFileError(String),
 }
 impl ErrOutput {

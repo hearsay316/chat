@@ -41,7 +41,7 @@ pub async fn verify_token(State(state): State<AppState>, req: Request, next: Nex
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{ User};
+    use crate::User;
     use anyhow::Result;
     use axum::body::Body;
     use axum::middleware::from_fn_with_state;

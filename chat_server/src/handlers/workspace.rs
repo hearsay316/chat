@@ -10,6 +10,6 @@ pub(crate) async fn list_chat_users_handler(
 ) -> Result<impl IntoResponse, AppError> {
     info!("user {user:?}");
     let ws_id = user.ws_id;
-    let users = state.fetch_chat_user_all(ws_id as _,).await?;
+    let users = state.fetch_chat_user_all(ws_id as _).await?;
     Ok(Json(users))
 }

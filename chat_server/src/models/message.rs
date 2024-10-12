@@ -29,9 +29,14 @@ impl AppState {
                 )));
             }
         }
+        if !self.is_chat_member(chat_id, user_id).await? {
+            return Err(AppError::CreateMessageError(format!(
+                "user {user_id} are not members of this chat {chat_id}"
+            )));
+        }
         let message: Message = sqlx::query_as(
             r#"
-        INSERT INTO message (chat_id,sender_id,content,files) VALUES ($1,$2,$3,$4)
+        INSERT INTO messages (chat_id,sender_id,content,files) VALUES ($1,$2,$3,$4)
         RETURNING id ,chat_id,sender_id,content,files,created_at
         "#,
         )
@@ -40,7 +45,53 @@ impl AppState {
         .bind(&input.content)
         .bind(&input.files)
         .fetch_one(&self.pool)
-        .await?;
+        .await
+        .expect("6666");
         Ok(message)
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[tokio::test]
+    async fn create_message_should_work() {
+        let (_tdb, state) = AppState::new_for_test().await.unwrap();
+        let input = CreateMessage {
+            content: "hello".to_string(),
+            files: vec![],
+        };
+        let message = state
+            .create_message(input, 1, 1)
+            .await
+            .expect("create message failed");
+        assert_eq!(message.content, "hello");
+
+        let input = CreateMessage {
+            content: "hello".to_string(),
+            files: vec!["1".to_string()],
+        };
+        let err = state.create_message(input, 1, 1).await.unwrap_err();
+        assert_eq!(err.to_string(), "Invalid chat file path: 1");
+        let path = upload_dummy_file(&state).expect("upload_dummy_file error");
+
+        let input = CreateMessage {
+            content: "hello".to_string(),
+            files: vec![path],
+        };
+        let message = state
+            .create_message(input, 1, 1)
+            .await
+            .expect("message content failed");
+        assert_eq!(message.content, "hello");
+        assert_eq!(message.files.len(), 1);
+        println!("{message:?}");
+    }
+
+    fn upload_dummy_file(state: &AppState) -> anyhow::Result<String> {
+        let file = ChatFile::new(1, "test.txt", b"hello word");
+        let path = file.path(&state.config.server.base_dir);
+        std::fs::create_dir_all(path.parent().expect("file path parent should exist"))?;
+        std::fs::write(&path, b"hello word")?;
+        Ok(file.url())
     }
 }
