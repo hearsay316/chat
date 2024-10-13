@@ -87,3 +87,18 @@ Hello, World!
 ### upload  file
 GET  http://127.0.0.1:6688/api/files/1/7fb/758/dc52840e6bd4c4d15c2d89d6c83aaf12b0.png
 authorization: Bearer {{auth_token}}
+
+
+###
+POST  http://127.0.0.1:6688/api/chats/1
+authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "content": "hello word1111",
+  "files": []
+}
+
+###
+GET  http://127.0.0.1:6688/api/chats/1/messages?limit=6&last_id=7
+authorization: Bearer {{auth_token}}

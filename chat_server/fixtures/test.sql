@@ -21,3 +21,17 @@ VALUES (1,'tchen1@acme.org','Tyr chen','$argon2id$v=19$m=19456,t=2,p=1$jR8CP5LE/
 INSERT INTO chats (ws_id,type, members)
 VALUES  (1,'single','{1,2}'),
         (1, 'group', '{1,3,4}');
+
+
+INSERT INTO messages (chat_id, sender_id, content)
+VALUES  (1,2,'hello word'),
+        (1,3,'hi, there'),
+        (1,4,'How are you?'),
+        (1,5,'I am fine, thank you!'),
+        (1,1,'Good to hear that'),
+        (1,2,'Hi , there'),
+        (1,3,'How are you?'),
+        (1,1,'hello word'),
+        (1,1,'hello word'),
+        (1,1,'hello word');
+

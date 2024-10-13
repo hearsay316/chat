@@ -8,6 +8,7 @@ use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 
 pub use chat::CreateChat;
+pub use message::{CreateMessage, ListMessages};
 use sqlx::FromRow;
 pub use user::{CreateUser, SigninUser};
 #[derive(FromRow, Debug, Clone, Deserialize, Serialize, PartialEq)]

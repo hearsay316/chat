@@ -6,6 +6,12 @@ pub struct CreateMessage {
     pub content: String,
     pub files: Vec<String>,
 }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListMessages {
+    pub last_id: Option<u64>,
+    pub limit: u64,
+}
+
 impl AppState {
     #[allow(unused)]
     pub async fn create_message(
@@ -29,11 +35,11 @@ impl AppState {
                 )));
             }
         }
-        if !self.is_chat_member(chat_id, user_id).await? {
-            return Err(AppError::CreateMessageError(format!(
-                "user {user_id} are not members of this chat {chat_id}"
-            )));
-        }
+        // if !self.is_chat_member(chat_id, user_id).await? {
+        //     return Err(AppError::CreateMessageError(format!(
+        //         "user {user_id} are not members of this chat {chat_id}"
+        //     )));
+        // }
         let message: Message = sqlx::query_as(
             r#"
         INSERT INTO messages (chat_id,sender_id,content,files) VALUES ($1,$2,$3,$4)
@@ -48,6 +54,31 @@ impl AppState {
         .await
         .expect("6666");
         Ok(message)
+    }
+    #[allow(unused)]
+    pub async fn list_messages(
+        &self,
+        input: ListMessages,
+        chat_id: u64,
+    ) -> Result<Vec<Message>, AppError> {
+        let last_id = input.last_id.unwrap_or(i64::MAX as _);
+
+        let messages: Vec<Message> = sqlx::query_as(
+            r#"
+            SELECT id, chat_id,sender_id, content, files ,created_at
+            FROM messages
+            WHERE chat_id = $1
+            AND id < $2
+            ORDER BY id DESC
+            LIMIT $3
+            "#,
+        )
+        .bind(chat_id as i64)
+        .bind(last_id as i64)
+        .bind(input.limit as i64)
+        .fetch_all(&self.pool)
+        .await?;
+        Ok(messages)
     }
 }
 #[cfg(test)]
@@ -85,6 +116,30 @@ mod tests {
         assert_eq!(message.content, "hello");
         assert_eq!(message.files.len(), 1);
         println!("{message:?}");
+    }
+    #[tokio::test]
+    async fn list_messages_should_word() {
+        let (_tdb, state) = AppState::new_for_test().await.unwrap();
+        let input = ListMessages {
+            last_id: None,
+            limit: 6,
+        };
+        let messages = state
+            .list_messages(input, 1)
+            .await
+            .expect("list_messages_should_word is error");
+        assert_eq!(messages.len(), 6);
+        println!("{messages:?}");
+        let last_id = messages.last().expect("last message should exist").id;
+        let input = ListMessages {
+            last_id: Some(last_id as u64),
+            limit: 6,
+        };
+        let messages = state
+            .list_messages(input, 1)
+            .await
+            .expect("list_messages_should_word is error");
+        assert_eq!(messages.len(), 4);
     }
 
     fn upload_dummy_file(state: &AppState) -> anyhow::Result<String> {

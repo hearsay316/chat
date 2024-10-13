@@ -7,6 +7,7 @@ use tower_http::LatencyUnit;
 use tracing::Level;
 
 mod auth;
+mod chat;
 mod request_id;
 mod server_time;
 
@@ -14,7 +15,7 @@ use request_id::set_request;
 use server_time::ServerTimeLayer;
 
 pub use auth::verify_token;
-
+pub use chat::verify_chat;
 pub const REQUEST_ID_HEADER: &str = "x-request-id";
 pub const SERVER_TIME_HEADER: &str = "x-server-time";
 pub fn set_layers(app: Router) -> Router {
