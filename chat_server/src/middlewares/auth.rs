@@ -41,13 +41,14 @@ pub async fn verify_token(State(state): State<AppState>, req: Request, next: Nex
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::User;
+
     use anyhow::Result;
     use axum::body::Body;
     use axum::middleware::from_fn_with_state;
     use axum::routing::get;
     use axum::Router;
     use tower::ServiceExt;
+    use chat_core::User;
 
     async fn handler(_req: Request) -> impl IntoResponse {
         (StatusCode::OK, "OK")

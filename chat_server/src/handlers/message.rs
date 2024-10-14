@@ -1,4 +1,4 @@
-use crate::{AppError, AppState, ChatFile, CreateMessage, ListMessages, User};
+use crate::{AppError, AppState, ChatFile, CreateMessage, ListMessages};
 use axum::extract::{Multipart, Path, Query, State};
 use axum::http::HeaderMap;
 use axum::response::IntoResponse;
@@ -6,6 +6,7 @@ use axum::{Extension, Json};
 use tokio::fs;
 
 use tracing::{info, warn};
+use chat_core::User;
 
 pub(crate) async fn send_message_handler(
     Extension(user): Extension<User>,

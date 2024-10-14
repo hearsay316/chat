@@ -1,4 +1,4 @@
-use super::WorkSpace;
+use chat_core::WorkSpace;
 use crate::{AppError, AppState};
 
 impl AppState {

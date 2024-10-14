@@ -1,5 +1,5 @@
 [workspace]
-members = ["chat_server", "notify_server"]
+members = ["chat_core","chat_server", "notify_server"]
 resolver = "2"
 [workspace.dependencies]
 anyhow = "1.0.89"
@@ -14,3 +14,4 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter","time"] }
 time = { version = "0.3.7", features = ["macros"] }
 chrono = { version = "0.4.38", features = ["serde"] }
 chrono-tz = "0.5"
+chat-core = { path = "./chat_core" }

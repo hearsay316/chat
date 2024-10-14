@@ -16,3 +16,4 @@ tokio = {workspace = true}
 tracing = {workspace = true}
 tracing-subscriber = {workspace = true}
 tokio-stream = "0.1.16"
+chat-core = {workspace = true}

@@ -1,13 +1,12 @@
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use std::mem;
 
-use crate::{AppError, AppState, User};
+use crate::{AppError, AppState };
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
 
 use jwt_simple::prelude::{Deserialize, Serialize};
-
-use crate::models::ChatUser;
+use chat_core::{ChatUser, User};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CreateUser {
@@ -128,7 +127,7 @@ impl AppState {
         Ok(users)
     }
 }
-impl ChatUser {}
+// impl ChatUser {}
 fn hash_password(password: &str) -> Result<String, AppError> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
@@ -165,20 +164,7 @@ impl SigninUser {
         }
     }
 }
-#[cfg(test)]
-impl User {
-    pub(crate) fn new(id: i64, fullname: &str, email: &str) -> Self {
-        use chrono::{DateTime, Utc};
-        Self {
-            id,
-            ws_id: 0,
-            fullname: fullname.to_string(),
-            email: email.to_string(),
-            password_hash: None,
-            created_at: DateTime::from(Utc::now()),
-        }
-    }
-}
+
 #[cfg(test)]
 mod tests {
     use super::*;

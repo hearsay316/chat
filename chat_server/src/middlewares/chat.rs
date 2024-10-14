@@ -1,8 +1,8 @@
 use axum::extract::{FromRequestParts, Path, Request, State};
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
-
-use crate::{AppError, AppState, User};
+use chat_core::User;
+use crate::{AppError, AppState};
 
 pub async fn verify_chat(State(state): State<AppState>, req: Request, next: Next) -> Response {
     let (mut parts, body) = req.into_parts();

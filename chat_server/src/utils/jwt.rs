@@ -1,6 +1,6 @@
 use jwt_simple::prelude::*;
-
-use crate::{AppError, User};
+use chat_core::User;
+use crate::{AppError};
 const JWT_DURATION: u64 = 60 * 60 * 24 * 7;
 const JWT_ISSUER: &str = "chat_server";
 const JWT_AUDIENCE: &str = "chat_web";
