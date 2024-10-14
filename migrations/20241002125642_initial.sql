@@ -4,12 +4,34 @@ CREATE TABLE IF NOT EXISTS users
 (
     id         BIGSERIAL PRIMARY KEY,
     fullname   VARCHAR(64) NOT NULL,
+    ws_id       BIGINT NOT NULL,
     email      VARCHAR(64) NOT NULL,
     -- hashed argon2 password
     -- 哈希argon2密码
     password_hash   VARCHAR(97) NOT NULL,
     created_at timestamptz DEFAULT CURRENT_TIMESTAMP
 );
+
+-- workspace   for  user
+CREATE TABLE IF NOT EXISTS workspaces (
+    id bigserial PRIMARY KEY ,
+    name varchar(32) NOT NULL UNIQUE ,
+    owner_id bigint NOT NULL REFERENCES users(id),
+    created_at timestamptz DEFAULT CURRENT_TIMESTAMP
+);
+
+BEGIN ;
+INSERT  INTO  users(id,ws_id, fullname, email, password_hash )
+VALUES (0,0,'super user','super@163.com', '');
+INSERT INTO  workspaces(id,name,owner_id)
+VALUES (0,'none',0);
+COMMIT ;
+
+
+ALTER  TABLE users
+    ADD CONSTRAINT users_ws_id_fk
+        FOREIGN KEY (ws_id)
+            REFERENCES workspaces(id);
 --create index  for  users for email
 CREATE UNIQUE INDEX IF NOT EXISTS email_index ON users (email);
 
@@ -22,6 +44,7 @@ CREATE TYPE chat_type AS ENUM ('single', 'group', 'private_channel', 'public_cha
 CREATE TABLE IF NOT EXISTS chats
 (
     id         BIGSERIAL PRIMARY KEY,
+    ws_id       BIGINT NOT NULL REFERENCES workspaces(id),
     name       VARCHAR(64),
     type       chat_type    NOT NULL,
     -- user id  list
