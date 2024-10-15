@@ -3,18 +3,18 @@ mod error;
 mod handlers;
 mod middlewares;
 mod models;
-mod utils;
 
-use crate::middlewares::{verify_chat, verify_token};
-use crate::utils::{DecodingKey, EncodingKey};
+use crate::middlewares::verify_chat;
 use anyhow::Context;
 use axum::middleware::from_fn_with_state;
 use axum::routing::{get, post};
 use axum::Router;
+use chat_core::middlewares::{set_layers, verify_token, TokenVerify};
+use chat_core::utils::{DecodingKey, EncodingKey};
+use chat_core::User;
 pub use config::AppConfig;
 pub use error::{AppError, ErrOutput};
 use handlers::*;
-use middlewares::set_layers;
 pub use models::*;
 use sqlx::PgPool;
 use std::fmt;
@@ -53,7 +53,7 @@ pub async fn get_router(config: AppConfig) -> Result<Router, AppError> {
         .nest("/chats", chat)
         .route("/upload", post(upload_handler))
         .route("/files/:ws_id/*path", get(file_handler))
-        .layer(from_fn_with_state(state.clone(), verify_token))
+        .layer(from_fn_with_state(state.clone(), verify_token::<AppState>))
         .route("/signin", post(signin_handler))
         .route("/signup", post(signup_handler));
 
@@ -68,6 +68,12 @@ impl Deref for AppState {
     type Target = Arc<AppStateInner>;
     fn deref(&self) -> &Self::Target {
         &self.inner
+    }
+}
+impl TokenVerify for AppState {
+    type Error = AppError;
+    fn verify(&self, token: &str) -> Result<User, Self::Error> {
+        Ok(self.dk.verify(token)?)
     }
 }
 impl AppState {

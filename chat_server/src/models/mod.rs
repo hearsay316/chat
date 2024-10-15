@@ -4,10 +4,9 @@ mod message;
 mod user;
 mod workspace;
 
-
-use serde::{Deserialize, Serialize};
 pub use chat::CreateChat;
 pub use message::{CreateMessage, ListMessages};
+use serde::{Deserialize, Serialize};
 pub use user::{CreateUser, SigninUser};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

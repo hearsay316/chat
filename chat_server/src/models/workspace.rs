@@ -1,5 +1,5 @@
-use chat_core::WorkSpace;
 use crate::{AppError, AppState};
+use chat_core::WorkSpace;
 
 impl AppState {
     pub async fn create_workspace(&self, name: &str, user_id: u64) -> Result<WorkSpace, AppError> {

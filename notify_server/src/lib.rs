@@ -4,13 +4,13 @@ use axum::response::{Html, IntoResponse};
 use axum::routing::get;
 use axum::Router;
 
+use chat_core::{Chat, Message};
 use sqlx::postgres::PgListener;
+use sse::sse_handler;
 use tokio_stream::StreamExt;
 use tracing::info;
-use chat_core::{Chat, Message};
-use sse::sse_handler;
 
-pub enum Event{
+pub enum Event {
     NewChat(Chat),
     AddToChat(Chat),
     RemoveFromChat(Chat),
@@ -24,14 +24,15 @@ pub fn get_router() -> Router {
         .route("/events", get(sse_handler))
 }
 pub async fn setup_pg_listener() -> anyhow::Result<()> {
-    let mut listener = PgListener::connect("postgres://postgres:123321@localhost:5432/chat").await?;
+    let mut listener =
+        PgListener::connect("postgres://postgres:123321@localhost:5432/chat").await?;
     listener.listen("chat_update").await?;
     listener.listen("chat_message_created").await?;
-    let mut  stream = listener.into_stream();
+    let mut stream = listener.into_stream();
 
-    tokio::spawn(async move{
-        while let Some(notification) =  stream.next().await {
-            info!("Receive notification :{:?}",notification);
+    tokio::spawn(async move {
+        while let Some(notification) = stream.next().await {
+            info!("Receive notification :{:?}", notification);
         }
     });
     Ok(())

@@ -4,6 +4,7 @@ resolver = "2"
 [workspace.dependencies]
 anyhow = "1.0.89"
 axum = { version = "0.7.7", features = ["http2", "tracing", "query","multipart"] }
+axum-extra = { version = "0.9.4", features = ["typed-header"] }
 serde = { version = "1.0.210", features = ["derive"] }
 serde_yaml = "0.9.34"
 sqlx = { version = "0.8.2", features = ["chrono","time","postgres", "runtime-tokio","tls-rustls"] }
@@ -14,4 +15,7 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter","time"] }
 time = { version = "0.3.7", features = ["macros"] }
 chrono = { version = "0.4.38", features = ["serde"] }
 chrono-tz = "0.5"
+tower = "0.5.1"
+tower-http = { version = "0.6.1", features = ["compression-full", "fs","cors", "trace"] }
+jwt-simple = "0.12.10"
 chat-core = { path = "./chat_core" }

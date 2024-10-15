@@ -1,8 +1,8 @@
+use crate::{AppError, AppState};
 use axum::extract::{FromRequestParts, Path, Request, State};
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use chat_core::User;
-use crate::{AppError, AppState};
 
 pub async fn verify_chat(State(state): State<AppState>, req: Request, next: Next) -> Response {
     let (mut parts, body) = req.into_parts();
@@ -32,13 +32,14 @@ pub async fn verify_chat(State(state): State<AppState>, req: Request, next: Next
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::middlewares::verify_token;
+
     use anyhow::Result;
     use axum::body::Body;
     use axum::http::StatusCode;
     use axum::middleware::from_fn_with_state;
     use axum::routing::get;
     use axum::Router;
+    use chat_core::middlewares::verify_token;
     use tower::ServiceExt;
 
     async fn handler(_req: Request) -> impl IntoResponse {
@@ -55,7 +56,7 @@ mod tests {
         let app = Router::new()
             .route("/chat/:id/messages", get(handler))
             .layer(from_fn_with_state(state.clone(), verify_chat))
-            .layer(from_fn_with_state(state.clone(), verify_token))
+            .layer(from_fn_with_state(state.clone(), verify_token::<AppState>))
             .with_state(state);
         // user in chat
         let req = Request::builder()

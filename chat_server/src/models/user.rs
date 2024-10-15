@@ -1,12 +1,12 @@
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use std::mem;
 
-use crate::{AppError, AppState };
+use crate::{AppError, AppState};
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
 
-use jwt_simple::prelude::{Deserialize, Serialize};
 use chat_core::{ChatUser, User};
+use jwt_simple::prelude::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CreateUser {

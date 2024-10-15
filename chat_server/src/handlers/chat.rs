@@ -3,8 +3,8 @@ use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::{Extension, Json};
-use tracing::info;
 use chat_core::User;
+use tracing::info;
 
 pub(crate) async fn list_chat_handler(
     Extension(user): Extension<User>,

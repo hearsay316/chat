@@ -5,8 +5,8 @@ use axum::response::IntoResponse;
 use axum::{Extension, Json};
 use tokio::fs;
 
-use tracing::{info, warn};
 use chat_core::User;
+use tracing::{info, warn};
 
 pub(crate) async fn send_message_handler(
     Extension(user): Extension<User>,
