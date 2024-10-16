@@ -23,7 +23,7 @@ POST http://127.0.0.1:6688/api/signin
 Content-Type: application/json
 
 {
-  "email": "qazwsx2228@163.com",
+  "email": "tchen1@acme.org",
   "password":"123456"
 }
 > {% client.global.set("auth_token", response.body.token); %}
@@ -100,5 +100,5 @@ Content-Type: application/json
 }
 
 ###
-GET  http://127.0.0.1:6688/api/chats/1/messages?limit=6&last_id=7
+GET  http://127.0.0.1:6688/api/chats/1/messages?limit=6
 authorization: Bearer {{auth_token}}
