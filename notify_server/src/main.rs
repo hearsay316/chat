@@ -1,8 +1,8 @@
 use anyhow::Result;
+use chat_core::utils::log::init_logging;
 use notify_server::{get_router, setup_pg_listener};
 use tokio::net::TcpListener;
 use tracing::info;
-use chat_core::utils::log::init_logging;
 
 #[tokio::main]
 async fn main() -> Result<()> {

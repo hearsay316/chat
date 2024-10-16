@@ -1,9 +1,9 @@
 use anyhow::Result;
 use chat_server::{get_router, AppConfig};
 
+use chat_core::utils::log::init_logging;
 use tokio::net::TcpListener;
 use tracing::info;
-use chat_core::utils::log::init_logging;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -18,4 +18,3 @@ async fn main() -> Result<()> {
 
     Ok(())
 }
-

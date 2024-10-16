@@ -84,7 +84,6 @@ mod tests {
             .layer(from_fn_with_state(state.clone(), verify_token::<AppState>))
             .with_state(state);
 
-
         // 有token
         let req = Request::builder()
             .uri("/app")

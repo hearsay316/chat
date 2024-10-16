@@ -4,7 +4,6 @@ use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
-
 #[derive(FromRow, Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct User {
     pub id: i64,
@@ -112,5 +111,3 @@ impl User {
         }
     }
 }
-
-
