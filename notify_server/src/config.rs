@@ -19,12 +19,9 @@ pub struct AppConfig {
 pub struct ServerConfig {
     // pub host: String,
     pub port: u16,
-    pub db_url: String,
-    pub base_dir: PathBuf,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthConfig {
-    pub sk: String,
     pub pk: String,
 }
 
@@ -33,9 +30,9 @@ impl AppConfig {
         info!("运行的目录 {:?}", env::current_dir());
         // 或者是 env
         let ret = match (
-            File::open("chat.yml"),
-            File::open("/ect/config/chat.yml"),
-            env::var("CHAT_CONFIG"),
+            File::open("notify.yml"),
+            File::open("/ect/config/notify.yml"),
+            env::var("NOTIFY_CONFIG"),
         ) {
             (Ok(reader), _, _) => serde_yaml::from_reader(reader),
             (_, Ok(reader), _) => serde_yaml::from_reader(reader),

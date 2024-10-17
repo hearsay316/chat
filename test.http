@@ -5,7 +5,7 @@ Content-Type: application/json
 {
   "workspace": "acme",
   "fullname": "zhangliqun",
-  "email": "qazwsx2228@163.com",
+  "email": "qazwsx22289@163.com",
   "password":"123456"
 }
 ###
@@ -102,3 +102,11 @@ Content-Type: application/json
 ###
 GET  http://127.0.0.1:6688/api/chats/1/messages?limit=6
 authorization: Bearer {{auth_token}}
+
+###
+POST  https://ffzzhdyy-xrfqdxra-8okrqcuzclty.vcc3.mcprev.cn/users
+Content-Type: application/json
+
+{
+  "username": "liucheng"
+}

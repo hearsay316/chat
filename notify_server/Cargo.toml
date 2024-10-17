@@ -16,3 +16,5 @@ tokio = {workspace = true}
 tracing = {workspace = true}
 tokio-stream = "0.1.16"
 chat-core = {workspace = true}
+jwt-simple = {workspace = true}
+dashmap = "6.1.0"

@@ -1,15 +1,30 @@
 mod sse;
+mod error;
+mod config;
 
+use std::ops::Deref;
+use std::sync::Arc;
+use axum::middleware::from_fn_with_state;
 use axum::response::{Html, IntoResponse};
 use axum::routing::get;
 use axum::Router;
 
-use chat_core::{Chat, Message};
+use chat_core::{Chat, Message, User};
 use sqlx::postgres::PgListener;
 use sse::sse_handler;
 use tokio_stream::StreamExt;
 use tracing::info;
+use chat_core::middlewares::{verify_token, TokenVerify};
+use chat_core::utils::DecodingKey;
+pub use error::AppError;
+use crate::config::AppConfig;
+#[derive(Clone)]
+struct AppState(Arc<AppStateInner>);
 
+struct AppStateInner {
+    pub dk: DecodingKey,
+    pub config: AppConfig,
+}
 pub enum Event {
     NewChat(Chat),
     AddToChat(Chat),
@@ -19,9 +34,13 @@ pub enum Event {
 const INDEX_HTML: &str = include_str!("../index.html");
 
 pub fn get_router() -> Router {
+    let config = AppConfig::load().expect("Failed to load configuration");
+    let state = AppState::new(config);
     Router::new()
         .route("/", get(index_handler))
         .route("/events", get(sse_handler))
+        .layer(from_fn_with_state(state.clone(), verify_token::<AppState>))
+        .with_state(state)
 }
 pub async fn setup_pg_listener() -> anyhow::Result<()> {
     let mut listener =
@@ -39,4 +58,23 @@ pub async fn setup_pg_listener() -> anyhow::Result<()> {
 }
 async fn index_handler() -> impl IntoResponse {
     Html(INDEX_HTML)
+}
+
+impl TokenVerify for AppState {
+    type Error = AppError;
+    fn verify(&self, token: &str) -> Result<User, Self::Error> {
+        Ok(self.dk.verify(token)?)
+    }
+}
+impl Deref for AppState {
+    type Target = AppStateInner;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl AppState {
+    fn new(config: AppConfig) -> AppState {
+        let dk = DecodingKey::load(&config.auth.pk).expect("Failed to load auth pk");
+        AppState(Arc::new(AppStateInner { dk, config }))
+    }
 }
