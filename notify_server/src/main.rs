@@ -8,9 +8,9 @@ use tracing::info;
 async fn main() -> Result<()> {
     init_logging();
     let addr = "0.0.0.0:6687";
-    setup_pg_listener().await?;
-    let app = get_router();
 
+    let (app,state) = get_router();
+    setup_pg_listener(state).await?;
     info!("Listener on:{}", addr);
     let listener = TcpListener::bind(&addr).await?;
     axum::serve(listener, app.into_make_service()).await?;

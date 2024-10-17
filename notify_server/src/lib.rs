@@ -8,23 +8,27 @@ use axum::routing::get;
 use axum::Router;
 use std::ops::Deref;
 use std::sync::Arc;
-
+use dashmap::DashMap;
 use crate::config::AppConfig;
 use chat_core::middlewares::{verify_token, TokenVerify};
 use chat_core::utils::DecodingKey;
 use chat_core::{Chat, Message, User};
 pub use error::AppError;
 use sqlx::postgres::PgListener;
+use tokio::sync::broadcast;
 use sse::sse_handler;
 use tokio_stream::StreamExt;
 use tracing::info;
+pub type UserMap = Arc<DashMap<u64,broadcast::Sender<Arc<Event>>>>;
 #[derive(Clone)]
 struct AppState(Arc<AppStateInner>);
 #[allow(unused)]
 struct AppStateInner {
     pub dk: DecodingKey,
+    pub users: UserMap,
     pub config: AppConfig,
 }
+#[derive(Debug, Clone)]
 pub enum Event {
     NewChat(Chat),
     AddToChat(Chat),
@@ -33,16 +37,17 @@ pub enum Event {
 }
 const INDEX_HTML: &str = include_str!("../index.html");
 
-pub fn get_router() -> Router {
+pub fn get_router() -> (Router, AppState) {
     let config = AppConfig::load().expect("Failed to load configuration");
     let state = AppState::new(config);
-    Router::new()
+    let app = Router::new()
         .route("/", get(index_handler))
         .route("/events", get(sse_handler))
         .layer(from_fn_with_state(state.clone(), verify_token::<AppState>))
-        .with_state(state)
+        .with_state(state.clone());
+    (app,state)
 }
-pub async fn setup_pg_listener() -> anyhow::Result<()> {
+pub async fn setup_pg_listener(state:AppState) -> anyhow::Result<()> {
     let mut listener =
         PgListener::connect("postgres://postgres:123321@localhost:5432/chat").await?;
     listener.listen("chat_update").await?;
@@ -51,7 +56,8 @@ pub async fn setup_pg_listener() -> anyhow::Result<()> {
 
     tokio::spawn(async move {
         while let Some(notification) = stream.next().await {
-            info!("Receive notification :{:?}", notification);
+            let _users = &state.users;
+            todo!()
         }
     });
     Ok(())
@@ -75,6 +81,7 @@ impl Deref for AppState {
 impl AppState {
     fn new(config: AppConfig) -> AppState {
         let dk = DecodingKey::load(&config.auth.pk).expect("Failed to load auth pk");
-        AppState(Arc::new(AppStateInner { dk, config }))
+        let users = Arc::new(DashMap::new());
+        AppState(Arc::new(AppStateInner { dk,users, config }))
     }
 }
