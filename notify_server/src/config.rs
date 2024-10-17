@@ -2,7 +2,6 @@ use anyhow::bail;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs::File;
-use std::path::PathBuf;
 use tracing::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

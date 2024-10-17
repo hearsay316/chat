@@ -1,4 +1,5 @@
 use anyhow::bail;
+use chat_core::utils::chat_server_path;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs::File;
@@ -31,10 +32,12 @@ pub struct AuthConfig {
 impl AppConfig {
     pub fn load() -> anyhow::Result<Self> {
         info!("运行的目录 {:?}", env::current_dir());
+
+        // info!("base_dir {:?}", dir1);
         // 或者是 env
         let ret = match (
-            File::open("chat.yml"),
-            File::open("/ect/config/chat.yml"),
+            File::open(chat_server_path("chat.yml")),
+            File::open(chat_server_path("/ect/config/chat.yml")),
             env::var("CHAT_CONFIG"),
         ) {
             (Ok(reader), _, _) => serde_yaml::from_reader(reader),

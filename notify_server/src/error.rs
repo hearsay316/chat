@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use axum::{http, Json};
+use axum::Json;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 #[derive(Debug, Deserialize, Serialize)]
@@ -9,12 +9,10 @@ pub struct ErrOutput {
 }
 #[derive(Error, Debug)]
 pub enum AppError {
-
     #[error("jwt error: {0}")]
     JWTError(#[from] jwt_simple::Error),
     #[error("io error: {0}")]
     IoError(#[from] std::io::Error),
-
 }
 impl ErrOutput {
     pub(crate) fn new(error: impl Into<String>) -> Self {

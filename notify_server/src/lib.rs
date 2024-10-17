@@ -1,26 +1,26 @@
-mod sse;
-mod error;
 mod config;
+mod error;
+mod sse;
 
-use std::ops::Deref;
-use std::sync::Arc;
 use axum::middleware::from_fn_with_state;
 use axum::response::{Html, IntoResponse};
 use axum::routing::get;
 use axum::Router;
+use std::ops::Deref;
+use std::sync::Arc;
 
+use crate::config::AppConfig;
+use chat_core::middlewares::{verify_token, TokenVerify};
+use chat_core::utils::DecodingKey;
 use chat_core::{Chat, Message, User};
+pub use error::AppError;
 use sqlx::postgres::PgListener;
 use sse::sse_handler;
 use tokio_stream::StreamExt;
 use tracing::info;
-use chat_core::middlewares::{verify_token, TokenVerify};
-use chat_core::utils::DecodingKey;
-pub use error::AppError;
-use crate::config::AppConfig;
 #[derive(Clone)]
 struct AppState(Arc<AppStateInner>);
-
+#[allow(unused)]
 struct AppStateInner {
     pub dk: DecodingKey,
     pub config: AppConfig,
