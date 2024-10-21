@@ -7,9 +7,8 @@ use tracing::info;
 #[tokio::main]
 async fn main() -> Result<()> {
     init_logging();
-    let addr = "0.0.0.0:6687";
-
     let (app,state) = get_router();
+    let addr = format!("0.0.0.0:{}", state.config.server.port);
     setup_pg_listener(state).await?;
     info!("Listener on:{}", addr);
     let listener = TcpListener::bind(&addr).await?;

@@ -14,7 +14,8 @@ sqlx = {workspace = true}
 thiserror = {workspace = true}
 tokio = {workspace = true}
 tracing = {workspace = true}
-tokio-stream = "0.1.16"
+tokio-stream ={version =  "0.1.16",features=["sync"]}
 chat-core = {workspace = true}
 jwt-simple = {workspace = true}
 dashmap = "6.1.0"
+serde_json = "1.0.132"

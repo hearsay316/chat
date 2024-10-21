@@ -1,16 +1,16 @@
-use std::arch::x86_64::_mm256_broadcast_pd;
-use axum::response::sse::Event;
-use axum::response::Sse;
+use crate::{AppEvent, AppState};
+use axum::{
+    extract::State,
+    response::{sse::Event, Sse},
+    Extension,
+};
 use axum_extra::{headers, TypedHeader};
-use futures::{stream, Stream};
-use std::convert::Infallible;
-use std::time::Duration;
-use axum::Extension;
-use axum::extract::State;
-use tokio::sync::broadcast;
-use tokio_stream::StreamExt;
 use chat_core::User;
-use crate::AppState;
+use futures::Stream;
+use std::{convert::Infallible, time::Duration};
+use tokio::sync::broadcast;
+use tokio_stream::{wrappers::BroadcastStream, StreamExt};
+use tracing::info;
 const CHANNEL_CAPACITY:usize = 100;
 pub(crate) async fn sse_handler(
     Extension(user): Extension<User>,
@@ -27,13 +27,21 @@ pub(crate) async fn sse_handler(
         state.users.insert(user_id,tx);
         rx1
     };
+    let stream = BroadcastStream::new(rx).filter_map(|v|v.ok())
+        .map(|v|{
+              let name =   match v.as_ref() {
+                    AppEvent::NewChat(_)=>"NewChat",
+                    AppEvent::AddToChat(_)=>"AddToChat",
+                    AppEvent::RemoveFromChat(_)=>"RemoveFromChat",
+                    AppEvent::NewMessage(_)=>"NewMessage"
+                };
+            let v = serde_json::to_string(&v).expect("Failed to serialize event");
+            Ok(Event::default().data(v).event(name))
+        });
     // A `Stream` that repeats an event every second
     //
     // You can also create streams from tokio channels using the wrappers in
     // https://docs.rs/tokio-stream
-    let stream = stream::repeat_with(|| Event::default().data("hi!"))
-        .map(Ok)
-        .throttle(Duration::from_secs(1));
 
     Sse::new(stream).keep_alive(
         axum::response::sse::KeepAlive::new()

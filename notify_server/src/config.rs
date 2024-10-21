@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs::File;
 use tracing::info;
+use chat_core::utils::{notify_server_path};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
@@ -18,6 +19,7 @@ pub struct AppConfig {
 pub struct ServerConfig {
     // pub host: String,
     pub port: u16,
+    pub db_url:String
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthConfig {
@@ -29,7 +31,7 @@ impl AppConfig {
         info!("运行的目录 {:?}", env::current_dir());
         // 或者是 env
         let ret = match (
-            File::open("notify.yml"),
+            File::open(notify_server_path("notify.yml")),
             File::open("/ect/config/notify.yml"),
             env::var("NOTIFY_CONFIG"),
         ) {
