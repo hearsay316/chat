@@ -48,9 +48,20 @@ async fn index_handler() -> impl IntoResponse {
     Html(INDEX_HTML)
 }
 
+//noinspection ALL
+/// 为 AppState 实现 TokenVerify trait，以便能够验证 token。
 impl TokenVerify for AppState {
+    /// 定义验证过程中可能产生的错误类型为 AppError。
     type Error = AppError;
+
+    /// 验证给定的 token，并返回对应的 User 或者错误。
+    ///
+    /// 如果 token 验证成功，将返回与该 token 关联的 User 对象。
+    /// 如果 token 验证失败，将返回一个 AppError 错误。
     fn verify(&self, token: &str) -> Result<User, Self::Error> {
+        /// 使用 self.dk (可能是某个验证服务或数据结构) 来验证 token。
+        /// 如果 token 有效，verify 函数将返回 User，否则将返回错误。
+        /// 使用 '?' 运算符来简洁地处理可能的错误，如果 verify 失败，它将返回 Err(AppError)。
         Ok(self.dk.verify(token)?)
     }
 }
