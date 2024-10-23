@@ -1,9 +1,9 @@
 use anyhow::bail;
+use chat_core::utils::notify_server_path;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs::File;
 use tracing::info;
-use chat_core::utils::{notify_server_path};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
@@ -19,7 +19,7 @@ pub struct AppConfig {
 pub struct ServerConfig {
     // pub host: String,
     pub port: u16,
-    pub db_url:String
+    pub db_url: String,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthConfig {

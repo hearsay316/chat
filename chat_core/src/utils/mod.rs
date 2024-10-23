@@ -6,9 +6,9 @@ use std::path::PathBuf;
 
 pub use jwt::{DecodingKey, EncodingKey};
 
-const CHAT:&str = "chat_server";
+const CHAT: &str = "chat_server";
 
-const NOTIFY:&str = "notify_server";
+const NOTIFY: &str = "notify_server";
 // pub fn
 
 fn get_file_path(with: &str, s: &str) -> PathBuf {
@@ -24,6 +24,6 @@ pub fn chat_server_path(with: &str) -> PathBuf {
     get_file_path(CHAT, with)
 }
 
-pub fn notify_server_path(with:&str)->PathBuf{
+pub fn notify_server_path(with: &str) -> PathBuf {
     get_file_path(NOTIFY, with)
 }

@@ -6,7 +6,7 @@ $$
 BEGIN
     RAISE NOTICE 'add_to_chat: %',NEW;
     PERFORM
-        pg_notify('chat_update', json_build_object(
+        pg_notify('chat_updated', json_build_object(
                 'op', TG_OP,
                 'old', OLD,
                 'new', NEW
@@ -27,11 +27,22 @@ CREATE OR REPLACE FUNCTION add_to_message()
     RETURNS TRIGGER
 AS
 $$
+DECLARE
+    USERS bigint[];
 BEGIN
     IF TG_OP = 'INSERT' THEN
         RAISE NOTICE 'add_to_message: %', NEW;
+        SELECT
+            members INTO USERS
+        FROM
+            chats
+        WHERE
+            id = NEW.chat_id;
         PERFORM
-            pg_notify('chat_message_created', row_to_json(NEW)::text);
+            pg_notify('chat_message_created',  json_build_object(
+                    'message', NEW,
+                    'members', USERS
+                                               )::TEXT);
     END IF;
     RETURN NEW;
 end;

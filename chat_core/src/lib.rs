@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS chats
 // ENUM ('single', 'group', 'private_channel', 'public_channel');
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, sqlx::Type)]
 #[sqlx(type_name = "chat_type", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum ChatType {
     Single,
     Group,
