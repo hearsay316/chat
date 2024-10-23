@@ -1,43 +1,58 @@
 use super::TokenVerify;
-use axum::extract::{FromRequestParts, Request, State};
+use axum::extract::{FromRequestParts, Query, Request, State};
 use axum::http::StatusCode;
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use axum_extra::headers::authorization::Bearer;
 use axum_extra::headers::Authorization;
 use axum_extra::TypedHeader;
+use serde::Deserialize;
+
 use tracing::{info, warn};
+
+#[derive(Debug, Deserialize)]
+struct Params {
+    access_token: String,
+}
 
 pub async fn verify_token<T>(State(state): State<T>, req: Request, next: Next) -> Response
 where
     T: TokenVerify + Clone + Send + Sync + 'static,
 {
     let (mut parts, body) = req.into_parts();
-    info!("{:?}", parts);
-    let req =
+    let token =
         match TypedHeader::<Authorization<Bearer>>::from_request_parts(&mut parts, &state).await {
-            Ok(TypedHeader(Authorization(bearer))) => {
-                let token = bearer.token();
-                info!("{:?}", token);
-                match state.verify(token) {
-                    Ok(user) => {
-                        let mut req = Request::from_parts(parts, body);
-                        req.extensions_mut().insert(user);
-                        req
+            Ok(TypedHeader(Authorization(bearer))) => bearer.token().to_string(),
+            Err(e) => {
+                if e.is_missing() {
+                    match Query::<Params>::from_request_parts(&mut parts, &state).await {
+                        Ok(params) => params.access_token.clone(),
+                        Err(e) => {
+                            let msg = format!("parse Authorization header failed :{}", e);
+                            warn!(msg);
+                            return (StatusCode::UNAUTHORIZED, msg).into_response();
+                        }
                     }
-                    Err(e) => {
-                        let msg = format!("verify token  failed  :{:?}", e);
-                        warn!(msg);
-                        return (StatusCode::FORBIDDEN, msg).into_response();
-                    }
+                } else {
+                    let msg = format!("parse Authorization header failed :{}", e);
+                    warn!(msg);
+                    return (StatusCode::UNAUTHORIZED, msg).into_response();
                 }
             }
-            Err(e) => {
-                let msg = format!("parse Authorization header failed :{:?}", e);
-                warn!(msg);
-                return (StatusCode::UNAUTHORIZED, msg).into_response();
-            }
         };
+    info!("{:?}", parts);
+    let req = match state.verify(&token) {
+        Ok(user) => {
+            let mut req = Request::from_parts(parts, body);
+            req.extensions_mut().insert(user);
+            req
+        }
+        Err(e) => {
+            let msg = format!("verify token  failed  :{:?}", e);
+            warn!(msg);
+            return (StatusCode::FORBIDDEN, msg).into_response();
+        }
+    };
     next.run(req).await
 }
 #[cfg(test)]
@@ -92,11 +107,28 @@ mod tests {
         let res = app.clone().oneshot(req).await?;
         println!("{:?}", res);
         assert_eq!(res.status(), StatusCode::OK);
+
+        // 有token  url
+        let req = Request::builder()
+            .uri(format!("/app?access_token={}", token))
+            .body(Body::empty())?;
+        let res = app.clone().oneshot(req).await?;
+        println!("{:?}", res);
+        assert_eq!(res.status(), StatusCode::OK);
+
         // 没有token
         let req = Request::builder().uri("/app").body(Body::empty())?;
         let res = app.clone().oneshot(req).await?;
         println!("{:?}", res);
         assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
+
+        // 错误 token url
+        let req = Request::builder()
+            .uri("/app?access_token=addon")
+            .body(Body::empty())?;
+        let res = app.clone().oneshot(req).await?;
+        println!("{:?}", res);
+        assert_eq!(res.status(), StatusCode::FORBIDDEN);
 
         // 错误 token
         let req = Request::builder()
