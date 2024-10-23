@@ -3,7 +3,9 @@ use axum::response::{IntoResponse, Response};
 use axum::{http, Json};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-#[derive(Debug, Deserialize, Serialize)]
+use utoipa::ToSchema;
+
+#[derive(Debug, Deserialize, ToSchema, Serialize)]
 pub struct ErrOutput {
     pub(crate) error: String,
 }

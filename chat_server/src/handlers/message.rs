@@ -1,13 +1,26 @@
-use crate::{AppError, AppState, ChatFile, CreateMessage, ListMessages};
+use crate::{AppError, AppState, ChatFile, CreateMessage, ErrOutput, ListMessages};
 use axum::extract::{Multipart, Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::IntoResponse;
 use axum::{Extension, Json};
 use tokio::fs;
 
-use chat_core::User;
+use chat_core::{Message, User};
 use tracing::{info, warn};
 
+#[utoipa::path(
+    post,
+    path = "/api/chats/{id}",
+    params(
+        ("id" = u64, Path, description = "Chat id"),
+    ),
+    responses(
+        (status = 200,headers( ("Authorization" = String, description = "Authorization token")), description = "List of messages", body = CreateMessage),
+    ),
+    security(
+        ("token" = [])
+    )
+)]
 pub(crate) async fn send_message_handler(
     Extension(user): Extension<User>,
     State(state): State<AppState>,
@@ -17,6 +30,22 @@ pub(crate) async fn send_message_handler(
     let message = state.create_message(input, id, user.id as _).await?;
     Ok((StatusCode::CREATED, Json(message)))
 }
+#[utoipa::path(
+    get,
+    path = "/api/chats/{id}/messages",
+    params(
+        ("id" = u64, Path, description = "Chat id"),
+        ListMessages
+
+    ),
+    responses(
+        (status = 200, description = "List of messages", body = Vec<Message>),
+        (status = 400, description = "Invalid input", body = ErrOutput),
+    ),
+    security(
+        ("token" = [])
+    )
+)]
 pub(crate) async fn list_message_handler(
     State(state): State<AppState>,
     Path(id): Path<u64>,

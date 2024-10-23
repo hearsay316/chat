@@ -7,15 +7,16 @@ use argon2::password_hash::SaltString;
 
 use chat_core::{ChatUser, User};
 use jwt_simple::prelude::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, ToSchema, Serialize)]
 pub struct CreateUser {
     pub fullname: String,
     pub email: String,
     pub workspace: String,
     pub password: String,
 }
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, ToSchema, Deserialize, Serialize)]
 pub struct SigninUser {
     pub email: String,
     pub password: String,

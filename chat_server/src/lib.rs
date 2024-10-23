@@ -3,8 +3,10 @@ mod error;
 mod handlers;
 mod middlewares;
 mod models;
+mod openapi;
 
 use crate::middlewares::verify_chat;
+use crate::openapi::OpenApiRouter;
 use anyhow::Context;
 use axum::middleware::from_fn_with_state;
 use axum::routing::{get, post};
@@ -57,6 +59,7 @@ pub async fn get_router(state: AppState) -> Result<Router, AppError> {
         .route("/signup", post(signup_handler));
 
     let router = Router::new()
+        .openapi()
         .route("/", get(index_handler))
         .nest("/api", api)
         .with_state(state);

@@ -7,10 +7,19 @@ use crate::models::{CreateUser, SigninUser};
 use crate::{AppError, AppState, ErrOutput};
 use serde::{Deserialize, Serialize};
 use tracing::info;
-#[derive(Debug, Serialize, Deserialize)]
+use utoipa::ToSchema;
+
+#[derive(Debug, Serialize, ToSchema, Deserialize)]
 pub struct AuthOutput {
     token: String,
 }
+#[utoipa::path(
+    post,
+    path = "/api/signup",
+    responses(
+        (status = 201, description = "User created", body = AuthOutput),
+    )
+)]
 pub(crate) async fn signup_handler(
     State(state): State<AppState>,
     Json(input): Json<CreateUser>,
@@ -20,6 +29,14 @@ pub(crate) async fn signup_handler(
     let body = Json(AuthOutput { token });
     Ok((StatusCode::CREATED, body))
 }
+
+#[utoipa::path(
+    post,
+    path = "/api/signin",
+    responses(
+        (status = 201, description = "User signed in", body = AuthOutput),
+    )
+)]
 pub(crate) async fn signin_handler(
     State(state): State<AppState>,
     Json(input): Json<SigninUser>,
