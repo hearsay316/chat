@@ -23,20 +23,19 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
-pub(crate) struct AppState {
+pub struct AppState {
     pub(crate) inner: Arc<AppStateInner>,
 }
 
 #[allow(unused)]
-pub(crate) struct AppStateInner {
+pub struct AppStateInner {
     pub(crate) config: AppConfig,
     pub(crate) dk: DecodingKey,
     pub(crate) ek: EncodingKey,
     pub(crate) pool: PgPool,
 }
 
-pub async fn get_router(config: AppConfig) -> Result<Router, AppError> {
-    let state = AppState::try_new(config).await?;
+pub async fn get_router(state: AppState) -> Result<Router, AppError> {
     let chat = Router::new()
         .route(
             "/:id",
@@ -77,7 +76,7 @@ impl TokenVerify for AppState {
     }
 }
 impl AppState {
-    async fn try_new(config: AppConfig) -> Result<Self, AppError> {
+    pub async fn try_new(config: AppConfig) -> Result<Self, AppError> {
         let dk = DecodingKey::load(&config.auth.pk).context("load pk key failed")?;
         let ek = EncodingKey::load(&config.auth.sk).context("load sk key failed")?;
         // let pool =  PgPoolOptions::new()
@@ -110,50 +109,54 @@ impl fmt::Debug for AppStateInner {
             .finish()
     }
 }
-#[cfg(test)]
-impl AppState {
-    async fn new_for_test() -> Result<(sqlx_db_tester::TestPg, Self), AppError> {
-        let config = AppConfig::load()?;
-        tokio::fs::create_dir_all(&config.server.base_dir)
-            .await
-            .context("create base_dir failed")?;
-        let dk = DecodingKey::load(&config.auth.pk).context("load pk key failed")?;
-        let ek = EncodingKey::load(&config.auth.sk).context("load sk key failed")?;
+#[cfg(feature = "test-util")]
+mod test_util {
+    use super::*;
+    use sqlx::{Executor, PgPool};
 
-        let server_url = config.server.db_url.split("/chat").next().unwrap();
+    impl AppState {
+        pub async fn new_for_test() -> Result<(sqlx_db_tester::TestPg, Self), AppError> {
+            let config = AppConfig::load()?;
+            tokio::fs::create_dir_all(&config.server.base_dir)
+                .await
+                .context("create base_dir failed")?;
+            let dk = DecodingKey::load(&config.auth.pk).context("load pk key failed")?;
+            let ek = EncodingKey::load(&config.auth.sk).context("load sk key failed")?;
 
-        let (tdb, pool) = get_test_pool(Some(server_url)).await;
-        Ok((
-            tdb,
-            Self {
-                inner: Arc::new(AppStateInner {
-                    config,
-                    dk,
-                    ek,
-                    pool,
-                }),
-            },
-        ))
-    }
-}
-#[cfg(test)]
-pub async fn get_test_pool(url: Option<&str>) -> (sqlx_db_tester::TestPg, PgPool) {
-    use sqlx::Executor;
-    let url = match url {
-        None => "postgres://postgres:123321@localhost:5432".to_string(),
-        Some(url) => url.to_string(),
-    };
-    let tdb = sqlx_db_tester::TestPg::new(url, std::path::Path::new("../migrations"));
-    let pool = tdb.get_pool().await;
-    let sql = include_str!("../fixtures/test.sql").split(";");
-    // println!("{:?}", sql);
-    let mut ts = pool.begin().await.expect("begin transaction failed");
-    for s in sql {
-        if s.trim().is_empty() {
-            continue;
+            let server_url = config.server.db_url.split("/chat").next().unwrap();
+
+            let (tdb, pool) = get_test_pool(Some(server_url)).await;
+            Ok((
+                tdb,
+                Self {
+                    inner: Arc::new(AppStateInner {
+                        config,
+                        dk,
+                        ek,
+                        pool,
+                    }),
+                },
+            ))
         }
-        ts.execute(s).await.expect("expect sql failed");
     }
-    ts.commit().await.expect("commit transaction failed");
-    (tdb, pool)
+
+    pub async fn get_test_pool(url: Option<&str>) -> (sqlx_db_tester::TestPg, PgPool) {
+        let url = match url {
+            None => "postgres://postgres:123321@localhost:5432".to_string(),
+            Some(url) => url.to_string(),
+        };
+        let tdb = sqlx_db_tester::TestPg::new(url, std::path::Path::new("../migrations"));
+        let pool = tdb.get_pool().await;
+        let sql = include_str!("../fixtures/test.sql").split(";");
+        // println!("{:?}", sql);
+        let mut ts = pool.begin().await.expect("begin transaction failed");
+        for s in sql {
+            if s.trim().is_empty() {
+                continue;
+            }
+            ts.execute(s).await.expect("expect sql failed");
+        }
+        ts.commit().await.expect("commit transaction failed");
+        (tdb, pool)
+    }
 }

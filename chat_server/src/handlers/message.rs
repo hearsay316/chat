@@ -1,6 +1,6 @@
 use crate::{AppError, AppState, ChatFile, CreateMessage, ListMessages};
 use axum::extract::{Multipart, Path, Query, State};
-use axum::http::HeaderMap;
+use axum::http::{HeaderMap, StatusCode};
 use axum::response::IntoResponse;
 use axum::{Extension, Json};
 use tokio::fs;
@@ -15,7 +15,7 @@ pub(crate) async fn send_message_handler(
     Json(input): Json<CreateMessage>,
 ) -> Result<impl IntoResponse, AppError> {
     let message = state.create_message(input, id, user.id as _).await?;
-    Ok(Json(message))
+    Ok((StatusCode::CREATED, Json(message)))
 }
 pub(crate) async fn list_message_handler(
     State(state): State<AppState>,

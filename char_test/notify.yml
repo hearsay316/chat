@@ -1,0 +1,9 @@
+server:
+  port: 6687
+  db_url: postgres://postgres:123321@localhost:5432/chat
+  base_dir: /tmp/chat_server
+auth:
+  pk: |
+    -----BEGIN PUBLIC KEY-----
+    MCowBQYDK2VwAyEA4y/QmAgmqRbnbNId+TTStvOZtUYpZ13gDPG7ifhBvMw=
+    -----END PUBLIC KEY-----

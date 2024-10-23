@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs::File;
 use std::path::PathBuf;
-use tracing::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
@@ -31,7 +30,7 @@ pub struct AuthConfig {
 
 impl AppConfig {
     pub fn load() -> anyhow::Result<Self> {
-        info!("运行的目录 {:?}", env::current_dir());
+        println!("运行的目录 {:?}", env::current_dir());
 
         // info!("base_dir {:?}", dir1);
         // 或者是 env

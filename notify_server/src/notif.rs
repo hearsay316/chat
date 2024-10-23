@@ -9,7 +9,7 @@ use std::sync::Arc;
 use tracing::{info, warn};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type")]
+#[serde(tag = "event")]
 pub enum AppEvent {
     NewChat(Chat),
     AddToChat(Chat),
