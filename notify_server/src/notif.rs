@@ -13,6 +13,7 @@ use tracing::{info, warn};
 pub enum AppEvent {
     NewChat(Chat),
     AddToChat(Chat),
+    UpdateChatName(Chat),
     RemoveFromChat(Chat),
     NewMessage(Message),
 }
@@ -65,11 +66,17 @@ impl Notification {
             "chat_updated" => {
                 let payload: CharUpdated = serde_json::from_str(payload).expect("sss");
                 info!("payload :{:?}", payload);
-                let user_ids =
+                let (user_ids,is_update_name) =
                     get_affected_chat_user_ids(payload.old.as_ref(), payload.new.as_ref());
                 let event = match payload.op.as_str() {
                     "INSERT" => AppEvent::NewChat(payload.new.expect("new should exist")),
-                    "UPDATE" => AppEvent::AddToChat(payload.new.expect("update should exist")),
+                    "UPDATE" => {
+                        if is_update_name {
+                            AppEvent::AddToChat(payload.new.expect("update should exist"))
+                        } else {
+                            AppEvent::UpdateChatName(payload.new.expect("update should name exist"))
+                        }
+                    }
                     "DELETE" => AppEvent::RemoveFromChat(payload.old.expect("delete should exist")),
                     _ => return Err(anyhow::anyhow!("Invalid operation")),
                 };
@@ -92,20 +99,22 @@ impl Notification {
     }
 }
 
-fn get_affected_chat_user_ids(old: Option<&Chat>, new: Option<&Chat>) -> HashSet<u64> {
+fn get_affected_chat_user_ids(old: Option<&Chat>, new: Option<&Chat>) -> (HashSet<u64>, bool) {
     // let mut user_ids = HashSet::new();
     match (old, new) {
         (Some(old), Some(new)) => {
+            let is_update_name = old.name == new.name;
+
             let old_user_ids: HashSet<_> = old.members.iter().map(|u| *u as u64).collect();
             let new_user_ids: HashSet<_> = new.members.iter().map(|u| *u as u64).collect();
             if old_user_ids == new_user_ids {
-                HashSet::new()
+                (new.members.iter().map(|u| *u as u64).collect(), is_update_name)
             } else {
-                old_user_ids.union(&new_user_ids).copied().collect()
+                (old_user_ids.union(&new_user_ids).copied().collect(), is_update_name)
             }
         }
-        (Some(old), None) => old.members.iter().map(|u| *u as u64).collect(),
-        (None, Some(new)) => new.members.iter().map(|u| *u as u64).collect(),
-        _ => HashSet::new(),
+        (Some(old), None) => (old.members.iter().map(|u| *u as u64).collect(), true),
+        (None, Some(new)) => (new.members.iter().map(|u| *u as u64).collect(), true),
+        _ => (HashSet::new(), true),
     }
 }
