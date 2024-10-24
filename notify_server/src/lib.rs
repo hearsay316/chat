@@ -3,6 +3,8 @@ mod error;
 mod notif;
 mod sse;
 
+use std::fmt;
+use std::fmt::Formatter;
 use axum::middleware::from_fn_with_state;
 use axum::response::{Html, IntoResponse};
 use axum::routing::get;
@@ -21,7 +23,7 @@ pub use notif::{setup_pg_listener, AppEvent};
 use sse::sse_handler;
 use tokio::sync::broadcast;
 pub type UserMap = Arc<DashMap<u64, broadcast::Sender<Arc<AppEvent>>>>;
-#[derive(Clone)]
+#[derive(Clone,Debug)]
 pub struct AppState(Arc<AppStateInner>);
 #[allow(unused)]
 pub struct AppStateInner {
@@ -73,5 +75,12 @@ impl AppState {
         let dk = DecodingKey::load(&config.auth.pk).expect("Failed to load auth pk");
         let users = Arc::new(DashMap::new());
         AppState(Arc::new(AppStateInner { dk, users, config }))
+    }
+}
+impl fmt::Debug for AppStateInner {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("AppStateInner")
+            .field("users", &self.users)
+            .finish()
     }
 }

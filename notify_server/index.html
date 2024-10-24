@@ -1,9 +1,5 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -13,33 +9,48 @@
     <link rel="stylesheet" href="">
 </head>
 <body>
-<!--[if lt IE 7]>
-<p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
-<![endif]-->
-
 <h1>Server Sent Events</h1>
+<div id="link"> 链接 </div>
 
+<div id="close">断开链接</div>
 <script lang="javascript">
-    let token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3Mjk2NjQwMzYsImV4cCI6MTczMDI2ODgzNiwibmJmIjoxNzI5NjY0MDM2LCJpc3MiOiJjaGF0X3NlcnZlciIsImF1ZCI6ImNoYXRfd2ViIiwiaWQiOjEsIndzX2lkIjoxLCJmdWxsbmFtZSI6IlR5ciBjaGVuIiwiZW1haWwiOiJ0Y2hlbjFAYWNtZS5vcmciLCJjcmVhdGVkX2F0IjoiMjAyNC0xMC0yM1QxMjoyODozMy43NTczMjcrMDg6MDAifQ.WhYfOy0fFfwEDfgbKQjk31nAeE4qDJBuh20X6Iz6gyPOxCFVfs_qloV2NkQ_A7raFl6_55vne9SLSSsEtRWtDw";
-    var source = new EventSource("/events?access_token=" + token);
-    source.onmessage = function(event) {
-        console.log("Got:", event.data);
-    };
-    source.addEventListener("NewChat", function(event) {
-        console.log("NewChat:", event.data);
-    });
+    let token = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3Mjk2ODcyNzgsImV4cCI6MTczMDI5MjA3OCwibmJmIjoxNzI5Njg3Mjc4LCJpc3MiOiJjaGF0X3NlcnZlciIsImF1ZCI6ImNoYXRfd2ViIiwiaWQiOjEsIndzX2lkIjoxLCJmdWxsbmFtZSI6IlR5ciBjaGVuIiwiZW1haWwiOiJ0Y2hlbjFAYWNtZS5vcmciLCJjcmVhdGVkX2F0IjoiMjAyNC0xMC0yM1QxMjoyODozMy43NTczMjcrMDg6MDAifQ.qFhqfEyNkrAbir8Mt7C6P6VMclghPiilOETvhyXaRzRGbwmlRnIdNbAObdrLRd0XQabgfHW17lBSRQCE851oDQ";
+    var source = [] ;
+    function getQueryParam(url, param) {
+        let searchParams = new URLSearchParams(new URL(url).search);
+        return searchParams.get(param);
+    }
+    function link() {
+       var t =  getQueryParam(window.location.href,"access_token")||token
+        source.push( new EventSource("/events?access_token=" + t));
+        source.onmessage = function(event) {
+            console.log("Got:", event.data);
+        };
+        source.addEventListener("NewChat", function(event) {
+            console.log("NewChat:", event.data);
+        });
 
-    source.addEventListener("AddToChat", function(event) {
-        console.log("AddToChat:", event.data);
-    });
+        source.addEventListener("AddToChat", function(event) {
+            console.log("AddToChat:", event.data);
+        });
 
-    source.addEventListener("RemoveFromChat", function(event) {
-        console.log("RemoveFromChat:", event.data);
-    });
+        source.addEventListener("RemoveFromChat", function(event) {
+            console.log("RemoveFromChat:", event.data);
+        });
 
-    source.addEventListener("NewMessage", function(event) {
-        console.log("NewMessage:", event.data);
-    });
+        source.addEventListener("NewMessage", function(event) {
+            console.log("NewMessage:", event.data);
+        });
+    }
+    function close() {
+        source.forEach((source)=>{
+            source.close();
+        });
+        source = [];
+    }
+    document.getElementById("close").onclick = close;
+    document.getElementById("link").onclick = link;
+    link();
 </script>
 </body>
 </html>

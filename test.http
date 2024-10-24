@@ -18,6 +18,15 @@ Content-Type: application/json
   "email": "908388349@qq.com",
   "password":"123456"
 }
+
+###
+POST http://127.0.0.1:6688/api/signin
+Content-Type: application/json
+
+{
+  "email": "qazwsx22289@163.com",
+  "password":"123456"
+}
 ###
 POST http://127.0.0.1:6688/api/signin
 Content-Type: application/json
