@@ -26,7 +26,7 @@ pub(crate) async fn sse_handler(
     Extension(user): Extension<User>,
     State(state): State<AppState>,
     // TypedHeader(user_agent): TypedHeader<headers::UserAgent>,
-) -> Sse<impl Stream<Item=Result<Event, Infallible>>> {
+) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     // info!("`{}` connected", user_agent.as_str());
     // 获取用户ID并转换为u64类型
     let user_id = user.id as u64;
@@ -51,7 +51,7 @@ pub(crate) async fn sse_handler(
             AppEvent::AddToChat(_) => "AddToChat",
             AppEvent::RemoveFromChat(_) => "RemoveFromChat",
             AppEvent::NewMessage(_) => "NewMessage",
-            AppEvent::UpdateChatName(_)=>"UpdateChatName"
+            AppEvent::UpdateChatName(_) => "UpdateChatName",
         };
         // 序列化事件数据
         let v = serde_json::to_string(&v).expect("Failed to serialize event");
@@ -97,13 +97,13 @@ struct Guard {
 /// 当Guard实例被丢弃时，自动移除用户ID对应的广播通道
 impl Drop for Guard {
     fn drop(&mut self) {
-        info!("{:?}",self);
+        info!("{:?}", self);
         // 删除用户ID对应的广播通道
         if let Some(removed_value) = self.state.users.remove(&self.user_id) {
             info!("成功删除了键\"key2\"，对应的值为: {:?}", removed_value);
         } else {
             info!("键\"key2\"不存在，无法删除");
         }
-        info!("{:?}",self);
+        info!("{:?}", self);
     }
 }

@@ -66,7 +66,7 @@ impl Notification {
             "chat_updated" => {
                 let payload: CharUpdated = serde_json::from_str(payload).expect("sss");
                 info!("payload :{:?}", payload);
-                let (user_ids,is_update_name) =
+                let (user_ids, is_update_name) =
                     get_affected_chat_user_ids(payload.old.as_ref(), payload.new.as_ref());
                 let event = match payload.op.as_str() {
                     "INSERT" => AppEvent::NewChat(payload.new.expect("new should exist")),
@@ -108,9 +108,15 @@ fn get_affected_chat_user_ids(old: Option<&Chat>, new: Option<&Chat>) -> (HashSe
             let old_user_ids: HashSet<_> = old.members.iter().map(|u| *u as u64).collect();
             let new_user_ids: HashSet<_> = new.members.iter().map(|u| *u as u64).collect();
             if old_user_ids == new_user_ids {
-                (new.members.iter().map(|u| *u as u64).collect(), is_update_name)
+                (
+                    new.members.iter().map(|u| *u as u64).collect(),
+                    is_update_name,
+                )
             } else {
-                (old_user_ids.union(&new_user_ids).copied().collect(), is_update_name)
+                (
+                    old_user_ids.union(&new_user_ids).copied().collect(),
+                    is_update_name,
+                )
             }
         }
         (Some(old), None) => (old.members.iter().map(|u| *u as u64).collect(), true),

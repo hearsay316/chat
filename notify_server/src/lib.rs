@@ -3,12 +3,12 @@ mod error;
 mod notif;
 mod sse;
 
-use std::fmt;
-use std::fmt::Formatter;
 use axum::middleware::from_fn_with_state;
 use axum::response::{Html, IntoResponse};
 use axum::routing::get;
 use axum::Router;
+use std::fmt;
+use std::fmt::Formatter;
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -23,7 +23,7 @@ pub use notif::{setup_pg_listener, AppEvent};
 use sse::sse_handler;
 use tokio::sync::broadcast;
 pub type UserMap = Arc<DashMap<u64, broadcast::Sender<Arc<AppEvent>>>>;
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub struct AppState(Arc<AppStateInner>);
 #[allow(unused)]
 pub struct AppStateInner {

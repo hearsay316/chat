@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use utoipa::ToSchema;
 
-#[derive(FromRow, Debug, Clone,ToSchema, Deserialize, Serialize, PartialEq)]
+#[derive(FromRow, Debug, Clone, ToSchema, Deserialize, Serialize, PartialEq)]
 pub struct User {
     pub id: i64,
     pub ws_id: i64,
@@ -16,14 +16,14 @@ pub struct User {
     pub password_hash: Option<String>,
     pub created_at: DateTime<Local>,
 }
-#[derive(FromRow, Debug,ToSchema, Clone, Deserialize, Serialize, PartialEq)]
+#[derive(FromRow, Debug, ToSchema, Clone, Deserialize, Serialize, PartialEq)]
 pub struct WorkSpace {
     pub id: i64,
     pub name: String,
     pub owner_id: i64,
     pub created_at: DateTime<Local>,
 }
-#[derive(FromRow, Debug,ToSchema, Clone, Deserialize, Serialize, PartialEq)]
+#[derive(FromRow, Debug, ToSchema, Clone, Deserialize, Serialize, PartialEq)]
 pub struct ChatUser {
     pub id: i64,
     pub fullname: String,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS chats
 );
 */
 // ENUM ('single', 'group', 'private_channel', 'public_channel');
-#[derive(Debug, Clone,ToSchema, Deserialize, Serialize, PartialEq, sqlx::Type)]
+#[derive(Debug, Clone, ToSchema, Deserialize, Serialize, PartialEq, sqlx::Type)]
 #[sqlx(type_name = "chat_type", rename_all = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum ChatType {
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS messages
     created_at timestamptz DEFAULT CURRENT_TIMESTAMP
 );
 */
-#[derive(Debug, Clone, FromRow,ToSchema, Deserialize, Serialize)]
+#[derive(Debug, Clone, FromRow, ToSchema, Deserialize, Serialize)]
 pub struct Message {
     pub id: i64,
     pub chat_id: i64,
