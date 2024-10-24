@@ -11,3 +11,9 @@ openssl*
 
 openssl genpkey -algorithm ed25519 -out chat_server\fixtures\encoding.pem
 openssl pkey -in chat_server\fixtures\encoding.pem  -pubout -out  chat_server\fixtures\decoding.pem
+### 已经实现
+- utoipa 剩下的代码支持
+- notify-server bug: 如果用户退出 SSE 连接，Dashmap 里还有这个用户的 sender (已经不能工作),
+-  请帮忙 fix - 如果用户退出，则删除 Dashmap 里对应的 entry
+- chat service 里未完成的 API，请帮忙完成
+- 拓展 notify service，使其能够通知: (a) chat name update
