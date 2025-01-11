@@ -6,6 +6,9 @@
 #### 3 安装nasm  https://www.wikihow.com/Run-NASM-on-Windows
 #### 4 需要安装 llvm  https://github.com/llvm/llvm-project/releases
    # Note: to emulate boringssl, "default-features = false" is required in addition to "pure-rust"
+关于 "aws-lc-sys" 在windows 上的编译(axum 源码编译)
+#### 1 C:\Program Files\OpenSSL-Win64\lib下面要有 libeay32.lib 和 ssleay32.lib (在C:\Program Files\OpenSSL-Win64\lib\VC\x64\MD下面有)
+#### 2 是安装nasm 要在2.15版本之上 安装nasm  https://www.nasm.us/
 
 openssl*
 
